@@ -15,9 +15,11 @@ Ansible python api state collection with a FastAPI frontend and SQLModel backend
 │   ├── main.py                  # Application entry point
 │   ├── ansible/                 # Ansible integration
 │   │   ├── __init__.py
-│   │   └── checks.py            # Check execution logic
+│   │   ├── checks.py            # Check execution logic
+│   │   └── deploy.py            # Deploy execution logic
 │   └── routers/                 # API endpoints
 │       ├── __init__.py
+│       ├── admin.py             # Admin control panel
 │       ├── details.py           # Detailed IOC status
 │       ├── login.py             # Authentication
 │       └── scoreboard.py        # Main scoring display
@@ -74,8 +76,6 @@ JSON output:
 }
 ```
 
-TODO: make one big json per IP?
-
 ### IOC deploy scripts `/iocs/deploy_scripts`
 
 Powershell or bash scripts that ansible will use to deploy the IOCs on the blue team networks. Scripts will follow the naming format `<OS>_<IOC_NAME>_Deploy.<EXT>`, ex: `Windows_Service_Deploy.ps1`, `Linux_Cron_Deploy.sh`.
@@ -97,17 +97,35 @@ TODO: need example
 
 ## Ansible checks `/app/ansible/checks.py`
 
-Run every 5 minutes starting at competition start. Hardcoded start time.
+Run every 5 minutes starting at competition start. Hardcoded start time configurable by admin. Admin also needs to "arm" checks.
+
+Uses a multiprocessed ansible callback plugin to capture json output from check scripts and queue the output to a db writer process.
 
 Create an ansible callback plugin that will use a python queue to queue results from the ansible checks. messages in the queue are processed by a single separate process db writer. spawn multiple (probably 4) worker processes to run the ansible checks since they run synchronously. build a queue of playbooks to run for each check, and then have the worker processes grab new playbooks when its done with one. make sure to use ansible's python api instead of the ansible-playbook cli.
 
+might need a middleman between the workers and the db writer to assemble the json data
+
 ## Frontend `/app/routers/`
 
-All pages besides login and scoreboard redirect to the login page if the user is not authenticated.
+All pages besides login and scoreboard redirect to the login page if the user is not authenticated. Navigating to `/` will redirect the user to the scoreboard.
+
+### Navigation bar
+
+Unauthenticated sessions have the login and scoreboard pages available.
+
+Authenticated sessions have the logout, scoreboard, detailed info, and admin (if admin user) pages available.
+
+login/logout will always be the rightmost link, separated from the rest by a `|`. the rest of the links are alphabetized and right justified.
+
+Left side of the navigation bar will say `Red Team Score`, and clicking that will send the user to the scoreboard.
 
 ### Login `/app/routers/login.py`
 
 Just simple username and password.
+
+### Logout `/app/routers/login.py`
+
+Just logs the user out and redirects the user to the login page.
 
 ### Scoreboard `/app/routers/scoreboard.py`
 
@@ -118,6 +136,17 @@ Graph/table showing all teams, their score, and how many points they earned last
 Blue teams are only able to see this page for their team. IOC names are obscured and follow the pattern `<OS>_<DIFFICULTY>_<NUM>`, ex: `WINDOWS_MEDIUM_2`, `LINUX_HARD_3`.
 
 Any account that is not a blue team will be able to see all blue team's detailed info and see the actual name of the IOC like this: `<OS>_<IOC_NAME>_<DIFFICULTY>_<NUM>`, ex: `WINDOWS_SERVICE_MEDIUM_2`, `LINUX_CRON_HARD_3`.
+
+### Admin `/app/routers/admin.py`
+
+Only visible to `admin` user
+
+Admin/Control panel
+- run deploy scripts
+- manually run checks
+- set competition start time
+- arm/disarm automatic checks
+- change user password
 
 ## Backend `/db/database.db`
 
@@ -140,7 +169,7 @@ BlueTeamNum -> Blue_Teams: TeamNum
 
 TeamNum (PK), TotalScore, LastCheckJSONID (FK)
 
-TODO: we should be able to calculate the total score with a sql add/query thing
+TODO: we should be able to calculate the total score dynamically with a sql add/query thing
 - some sorta `SELECT SUM(ScoreAdded) AS TotalScore FROM Check_Instance WHERE BlueTeamNum = TeamNum`
 
 LastCheckJSONID -> Check_Instance: ID
