@@ -6,6 +6,10 @@ Ansible python api state collection with a FastAPI frontend and SQLModel backend
 ```
 .
 ├── ansible/
+│   ├── plugins/
+│   │   └── callback/
+│   │       └── scoring_queue.py # Callback plugin for managing checks
+│   ├── ansible.cfg              # Points to ./plugins/callback
 │   ├── inventory/               # Blue team network configurations
 │   └── playbooks/
 │       ├── check/               # IOC checking playbooks
@@ -17,6 +21,9 @@ Ansible python api state collection with a FastAPI frontend and SQLModel backend
 │   │   ├── __init__.py
 │   │   ├── checks.py            # Check execution logic
 │   │   └── deploy.py            # Deploy execution logic
+│   ├── database/                # Database integration
+│   │   ├── __init__.py
+│   │   ├── db_writer.py         # Database writer
 │   └── routers/                 # API endpoints
 │       ├── __init__.py
 │       ├── admin.py             # Admin control panel
@@ -38,7 +45,8 @@ Ansible python api state collection with a FastAPI frontend and SQLModel backend
 ## Scoring info
 
 - 10 IOCs per box
-- even split between easy, medium and hard (4, 3, 3)
+- even split between easy (1), medium (2) and hard (3)
+  - (4, 3, 3)
 - these give 10, 15, 20 points respectively.
 
 ## Design principles
@@ -49,8 +57,6 @@ Needs to be as generic and config based as possible so its easy to reuse and mod
 
 ### Defining IOCs `/iocs/definitions/`
 
-TODO: need examples for windows and linux
-
 An IOC is a single misconfiguration, persistence mechanism, etc. These are defined by YAML files in the naming format `<OS>_<IOC_NAME>.yml`, ex: `Windows_Service.yml`, `Linux_Cron.yml`. Each IOC YAML file contains the following information:
 - Name of the IOC
 - Description of the IOC
@@ -58,6 +64,30 @@ An IOC is a single misconfiguration, persistence mechanism, etc. These are defin
 - OS (Windows, Linux, and/or Firewall)
 - Script path that will check for the IOC (bash or powershell)
 - Discovery: How are the blue teams intended to discover this IOC? (this is for white team)
+
+#### Windows example
+
+```yaml
+name: malicious_service_win
+description: Backdoor windows service listening on the network
+difficulty: 2
+os: windows
+check_script: check_scripts/windows/Windows_Service_Check.ps1
+deploy_script: deploy_scripts/windows/Windows_Service_Deploy.ps1
+discovery: Check services.exe, sc.exe query, wmic, netstat, etc.
+```
+
+#### Linux example
+
+```yaml
+name: malicious_cron_lin
+description: Backdoor cron job running every 5 minutes
+difficulty: 1
+os: linux
+check_script: check_scripts/linux/Linux_Cron_Check.sh
+deploy_script: deploy_scripts/linux/Linux_Cron_Deploy.sh
+discovery: Check crontab -l and /etc/cron.d/
+```
 
 ### IOC checking scripts `/iocs/check_scripts`
 
@@ -101,9 +131,35 @@ Run every 5 minutes starting at competition start. Hardcoded start time configur
 
 Uses a multiprocessed ansible callback plugin to capture json output from check scripts and queue the output to a db writer process.
 
-Create an ansible callback plugin that will use a python queue to queue results from the ansible checks. messages in the queue are processed by a single separate process db writer. spawn multiple (probably 4) worker processes to run the ansible checks since they run synchronously. build a queue of playbooks to run for each check, and then have the worker processes grab new playbooks when its done with one. make sure to use ansible's python api instead of the ansible-playbook cli.
+### Ansible callback plugin `/ansible/plugins/callback/scoring_queue.py`
 
-might need a middleman between the workers and the db writer to assemble the json data
+Intended to be run as a subprocess so we can multiprocess the checks. Captures JSON output from the check scripts and queues it for the database writer process.
+
+probably spawning 4 of these since ansible checks run synchronously. need to build a queue of playbooks to run for each check, and then have the worker processes grab new playbooks when its done with one. use ansible's python api.
+
+#### Output parsing
+
+```json
+{
+	"ip": "<IP_ADDRESS>",
+	"os": "windows|linux|firewall",
+	"ioc_name": "<IOC_NAME>",
+	"status": -1|0|1, // -1=check failed, 0=remediated, 1=present
+	"error": "<ERR_MSG>" // contains the error message if there is one
+}
+```
+
+needs to become
+
+- int IOCID (PK)
+- int CheckID (FK -> Check_Instance: CheckID)
+- str BoxIP
+- str IOCName
+- int Difficulty
+- int Status
+- str Error
+
+IOCID gets assigned upon record creation. CheckID should be the most recent check for the blue team that matches the 3rd octet in the IP. We'll need a difficulty to IOCName mapping somewhere.
 
 ## Frontend `/app/routers/`
 
@@ -147,14 +203,26 @@ Admin/Control panel
 - set competition start time
 - arm/disarm automatic checks
 - change user password
+- clear check_instance and ioc_check_result tables, reset blue_teams score and lastcheckid
 
 ## Backend `/db/database.db`
+
+### DB Writer `/app/database/db_writer.py`
+
+Consumes queue created by ansible callback plugin. Stores check results in the `IOC_Check_Result` table. Run as a subprocess to ensure that db writes don't get behind.
+
+`Check_Instance` records should be created when that check starts.
 
 ### DB Tables
 
 #### `Users`
 
-Username (PK), Password (hashed), IsBlueTeam, BlueTeamNum (FK)
+Columns:
+- int UserID (PK)
+- str Username
+- str Password (hashed)
+- bool IsBlueTeam
+- int BlueTeamNum (FK -> Blue_Teams: TeamNum)
 
 Accounts:
 - `blueteamXX` (00-16)
@@ -163,17 +231,111 @@ Accounts:
 - `blackteam`
 - `admin`
 
-BlueTeamNum -> Blue_Teams: TeamNum
-
 #### `Blue_Teams`
 
-TeamNum (PK), TotalScore, LastCheckJSONID (FK)
-
-TODO: we should be able to calculate the total score dynamically with a sql add/query thing
-- some sorta `SELECT SUM(ScoreAdded) AS TotalScore FROM Check_Instance WHERE BlueTeamNum = TeamNum`
-
-LastCheckJSONID -> Check_Instance: ID
+Columns:
+- int TeamNum (PK)
+- int null LastCheckID (FK -> Check_Instance: CheckID)
 
 #### `Check_Instance`
 
-ID (PK), BlueTeamNum (FK), ScoreAdded, CheckJSON
+Columns:
+- int CheckID (PK)
+- int BlueTeamNum (FK -> Blue_Teams: TeamNum)
+- str Timestamp (iso 8601)
+- int Score
+
+#### `IOC_Check_Result`
+
+Columns:
+- int IOCID (PK)
+- int CheckID (FK -> Check_Instance: CheckID)
+- str BoxIP
+- str IOCName
+- int Difficulty
+- int Status
+- str Error
+
+### DB Views
+
+Used to dynamically calculate scores
+
+#### Base view for IOC points
+```sql
+CREATE VIEW IOC_Check_Result_With_Points AS
+SELECT
+  icr.*,
+  CASE
+      WHEN icr.Status = 0 THEN
+          CASE icr.Difficulty
+              WHEN 1 THEN 10
+              WHEN 2 THEN 15
+              WHEN 3 THEN 20
+              ELSE 0
+          END
+      ELSE 0
+  END AS Points
+FROM IOC_Check_Result icr;
+```
+
+#### Calculate score gained from one check
+```sql
+CREATE VIEW Check_Instance_With_Score AS
+SELECT
+  ci.CheckID,
+  ci.BlueTeamNum,
+  ci.Timestamp,
+  COALESCE(SUM(icrp.Points), 0) AS Score
+FROM Check_Instance ci
+LEFT JOIN IOC_Check_Result_With_Points icrp ON ci.CheckID = icrp.CheckID
+GROUP BY ci.CheckID, ci.BlueTeamNum, ci.Timestamp;
+```
+
+#### Calculate scores for the scoreboard
+```sql
+CREATE VIEW Blue_Teams_Scoreboard AS
+SELECT
+  bt.TeamNum,
+  bt.LastCheckID,
+  COALESCE(
+      (SELECT SUM(Score)
+       FROM Check_Instance_With_Score
+       WHERE BlueTeamNum = bt.TeamNum),
+  0) AS TotalScore,
+  COALESCE(last_check.Score, 0) AS LastCheckScore,
+  last_check.Timestamp AS LastCheckTime
+FROM Blue_Teams bt
+LEFT JOIN Check_Instance_With_Score last_check
+  ON bt.LastCheckID = last_check.CheckID;
+```
+
+#### Gather information for the details page
+```sql
+CREATE VIEW Team_Latest_IOC_Details AS
+SELECT
+  bt.TeamNum,
+  icrp.BoxIP,
+  icrp.IOCName,
+  icrp.Difficulty,
+  icrp.Status,
+  icrp.Error,
+  icrp.Points
+FROM Blue_Teams bt
+INNER JOIN IOC_Check_Result_With_Points icrp ON icrp.CheckID = bt.LastCheckID
+ORDER BY bt.TeamNum, icrp.BoxIP, icrp.IOCName;
+```
+
+#### Score progression over time
+```sql
+CREATE VIEW Score_History AS
+SELECT
+  ci.BlueTeamNum AS TeamNum,
+  ci.Timestamp,
+  ci.Score AS CheckScore,
+  (SELECT SUM(Score)
+   FROM Check_Instance_With_Score ci2
+   WHERE ci2.BlueTeamNum = ci.BlueTeamNum
+     AND ci2.Timestamp <= ci.Timestamp) AS CumulativeScore
+FROM Check_Instance_With_Score ci
+ORDER BY ci.BlueTeamNum, ci.Timestamp;
+```
