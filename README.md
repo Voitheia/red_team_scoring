@@ -32,14 +32,15 @@ Ansible python api state collection with a FastAPI frontend and SQLModel backend
 │       └── scoreboard.py        # Main scoring display
 ├── db/
 │   └── database.db              # SQLite database (dev only)
-└── iocs/                        # Indicator of Compromise assets
-    ├── definitions/             # YAML IOC definitions
-    ├── check_scripts/           # Scripts to verify IOC status
-    │   ├── linux/
-    │   └── windows/
-    └── deploy_scripts/          # Scripts to plant IOCs
-        ├── linux/
-        └── windows/
+├── iocs/                        # Indicator of Compromise assets
+│   ├── definitions/             # YAML IOC definitions
+│   ├── check_scripts/           # Scripts to verify IOC status
+│   │   ├── linux/
+│   │   └── windows/
+│   └── deploy_scripts/          # Scripts to plant IOCs
+│       ├── linux/
+│       └── windows/
+└── payloads/                    # Binary files
 ```
 
 ## Scoring info
@@ -110,7 +111,11 @@ JSON output:
 
 Powershell or bash scripts that ansible will use to deploy the IOCs on the blue team networks. Scripts will follow the naming format `<OS>_<IOC_NAME>_Deploy.<EXT>`, ex: `Windows_Service_Deploy.ps1`, `Linux_Cron_Deploy.sh`.
 
-## Blue team network config files `/ansible/inventory`
+## Payloads `/payloads/`
+
+If an IOC needs a file to be deployed with it, such as `nc` for a simple listener, those files should be placed in the `/payloads/` directory. Use the `copy` ansible module for linux hosts and the `win_copy` module for windows hosts to pull payloads down to targets.
+
+## Ansible inventory `/ansible/inventory`
 
 YAML file(s) that define the blue team networks:
 - Number of teams
@@ -123,7 +128,63 @@ YAML file(s) that define the blue team networks:
 	- OS (Windows, Linux, or Firewall)
 	- IP 4th octet (10.100.101.XXX - 10.100.101.1/10.100.101.101)
 
-TODO: need example
+Potentially have dynamic inventory generation like so:
+```python
+  # app/ansible/inventory_generator.py
+  from ansible.inventory.manager import InventoryManager
+  from ansible.parsing.dataloader import DataLoader
+
+  class DynamicInventory:
+      def __init__(self, team_config):
+          self.base_network = team_config['base_network']  # e.g., "10.100"
+          self.num_teams = team_config['num_teams']
+          self.boxes = team_config['boxes']  # Template of boxes
+          self.credentials = team_config['credentials']
+
+      def generate_team_inventory(self, team_num):
+          """Generate inventory for a specific team"""
+          team_octet = self._calculate_team_octet(team_num)
+          inventory = {
+              f'team_{team_num}': {
+                  'hosts': {},
+                  'vars': {
+                      'ansible_user': self.credentials['username'],
+                      'ansible_password': self.credentials['password'],
+                      'team_number': team_num
+                  }
+              }
+          }
+
+          for box in self.boxes:
+              host_ip = f"{self.base_network}.{team_octet}.{box['ip_suffix']}"
+              inventory[f'team_{team_num}']['hosts'][box['name']] = {
+                  'ansible_host': host_ip,
+                  'os_type': box['os'],
+                  'box_name': box['name']
+              }
+
+          return inventory
+```
+
+```yaml
+  # config/teams.yml
+  base_network: "10.100"
+  num_teams: 16
+  team_ip_pattern: "{team_num}XX"  # Results in 101, 102, etc.
+  credentials:
+    username: admin
+    password: ${ANSIBLE_PASSWORD}
+  boxes:
+    - name: dc01
+      os: windows
+      ip_suffix: 1
+    - name: web01
+      os: linux
+      ip_suffix: 10
+    - name: fw01
+      os: firewall
+      ip_suffix: 254
+```
 
 ## Ansible checks `/app/ansible/checks.py`
 
@@ -215,6 +276,8 @@ Consumes queue created by ansible callback plugin. Stores check results in the `
 
 ### DB Tables
 
+Use SQLModel to create and interact with these.
+
 #### `Users`
 
 Columns:
@@ -258,7 +321,7 @@ Columns:
 
 ### DB Views
 
-Used to dynamically calculate scores
+Used to dynamically calculate scores. Use direct sql connection to create and query these.
 
 #### Base view for IOC points
 ```sql
