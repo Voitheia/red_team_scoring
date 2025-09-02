@@ -1,6 +1,6 @@
 # Red Team Scoring
 
-Ansible python api state collection with a FastAPI frontend and SQLModel backend to facilitate quantitative red team scoring in CDE. Queries boxes for status of IOCs to determine a team's score.
+Ansible python api state collection with a React frontend, FastAPI backend, and a SQLModel(SQLite) database to facilitate quantitative red team scoring in CDE. Queries boxes for status of IOCs to determine a team's score.
 
 ## File structure
 ```
@@ -24,7 +24,7 @@ Ansible python api state collection with a FastAPI frontend and SQLModel backend
 │   ├── database/                # Database integration
 │   │   ├── __init__.py
 │   │   ├── db_writer.py         # Database writer
-│   └── routers/                 # API endpoints
+│   └── routes/                 # API endpoints
 │       ├── __init__.py
 │       ├── admin.py             # Admin control panel
 │       ├── details.py           # Detailed IOC status
@@ -222,7 +222,7 @@ needs to become
 
 IOCID gets assigned upon record creation. CheckID should be the most recent check for the blue team that matches the 3rd octet in the IP. We'll need a difficulty to IOCName mapping somewhere.
 
-## Frontend `/app/routers/`
+## Frontend
 
 All pages besides login and scoreboard redirect to the login page if the user is not authenticated. Navigating to `/` will redirect the user to the scoreboard.
 
