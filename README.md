@@ -2,6 +2,49 @@
 
 Ansible python api state collection with a React frontend, FastAPI backend, and a SQLModel(SQLite) database to facilitate quantitative red team scoring in CDE. Queries boxes for status of indicators of compromise (IOCs) to determine a team's score.
 
+## File structure/Table of contents
+```
+.
+├── ansible/
+│   ├── plugins/
+│   │   └── callback/
+│   │       └── scoring_queue.py   # Callback plugin for managing checks
+│   ├── ansible.cfg                # Points to ./plugins/callback
+│   ├── inventory/                 # Blue team network configurations
+│   └── playbooks/
+│       ├── check/                 # IOC checking playbooks
+│       └── deploy/                # IOC deployment playbooks
+├── app/                           # FastAPI application
+│   ├── __init__.py
+│   ├── main.py                    # Application entry point
+│   ├── ansible/                   # Ansible integration
+│   │   ├── __init__.py
+│   │   ├── checks.py              # Check execution logic
+│   │   └── deploy.py              # Deploy execution logic
+│   ├── database/                  # Database integration
+│   │   ├── __init__.py
+│   │   ├── db_writer.py           # Database writer
+│   └── routes/                    # API endpoints
+│       ├── __init__.py
+│       ├── admin.py               # Admin control panel
+│       ├── details.py             # Detailed IOC status
+│       ├── login.py               # Authentication
+│       └── scoreboard.py          # Main scoring display
+├── db/
+│   └── database.db                # SQLite database (dev only)
+├── iocs/                          # Indicator of Compromise assets
+│   ├── definitions/               # YAML IOC definitions
+│   ├── check_scripts/             # Scripts to verify IOC status
+│   │   ├── firewall/
+│   │   ├── linux/
+│   │   └── windows/
+│   └── deploy_scripts/            # Scripts to plant IOCs
+│       ├── firewall/
+│       ├── linux/
+│       └── windows/
+└── payloads/                      # Binary files
+```
+
 ## Components Overview
 ```
   ┌──────────────────────────────────────────────────────────┐
@@ -64,11 +107,11 @@ Ansible python api state collection with a React frontend, FastAPI backend, and 
 
 Automates deployment and checking of IOCs. Uses SSH or WinRM, depending on the host OS, for remote command execution. 
 
-### React
+### React (80/443)
 
 Frontend for the scoreboards and admin functionality.
 
-### FastAPI
+### FastAPI (8000)
 
 Interconnection between other components. Serves data to React from an API and provides test/admin funcitonality. Has an Ansible callback plugin that captures check results and stores them in SQLModel.
 
@@ -79,47 +122,6 @@ This data is based.
 ### IOCs
 
 Defined in yml files, these are persistence mechanisms or misconfigurations that can be deployed or have their status checked with a corresponding script.
-
-## File structure
-```
-.
-├── ansible/
-│   ├── plugins/
-│   │   └── callback/
-│   │       └── scoring_queue.py   # Callback plugin for managing checks
-│   ├── ansible.cfg                # Points to ./plugins/callback
-│   ├── inventory/                 # Blue team network configurations
-│   └── playbooks/
-│       ├── check/                 # IOC checking playbooks
-│       └── deploy/                # IOC deployment playbooks
-├── app/                           # FastAPI application
-│   ├── __init__.py
-│   ├── main.py                    # Application entry point
-│   ├── ansible/                   # Ansible integration
-│   │   ├── __init__.py
-│   │   ├── checks.py              # Check execution logic
-│   │   └── deploy.py              # Deploy execution logic
-│   ├── database/                  # Database integration
-│   │   ├── __init__.py
-│   │   ├── db_writer.py           # Database writer
-│   └── routes/                    # API endpoints
-│       ├── __init__.py
-│       ├── admin.py               # Admin control panel
-│       ├── details.py             # Detailed IOC status
-│       ├── login.py               # Authentication
-│       └── scoreboard.py          # Main scoring display
-├── db/
-│   └── database.db                # SQLite database (dev only)
-├── iocs/                          # Indicator of Compromise assets
-│   ├── definitions/               # YAML IOC definitions
-│   ├── check_scripts/             # Scripts to verify IOC status
-│   │   ├── linux/
-│   │   └── windows/
-│   └── deploy_scripts/            # Scripts to plant IOCs
-│       ├── linux/
-│       └── windows/
-└── payloads/                      # Binary files
-```
 
 ## Scoring info
 
@@ -305,6 +307,21 @@ IOCID gets assigned upon record creation. CheckID should be the most recent chec
 
 All pages besides login and scoreboard redirect to the login page if the user is not authenticated. Navigating to `/` will redirect the user to the scoreboard. Python files listed here contain the associated API functionality for the matching frontend page.
 
+### API functionality
+
+API functionality is defined below in this format:
+```
+Request Type (`GET`/`POST`)
+- Request data 1
+- Request data 2
+
+Response
+- Response data 1
+- Response data 2
+```
+
+All response data will have a nullable `error` field unless otherwise mentioned.
+
 ### Navigation bar
 
 Unauthenticated sessions have the login and scoreboard pages available.
@@ -319,19 +336,70 @@ Left side of the navigation bar will say `Red Team Score`, and clicking that wil
 
 Just simple username and password.
 
+#### API `localhost:8000/login`
+
+`POST`
+- Username
+- Password
+  - will the site be http or https? do we care that we're throwing plaintext creds around? don't think it really matters for us
+
+Response
+- Session UUID
+  - unsure how we should implement this, or if we even need to do it manually. FastAPI probably has something builtin to handle authentication and authorization
+
 ### Logout `/app/routers/login.py`
 
 Just logs the user out and redirects the user to the login page.
 
+#### API `localhost:8000/logout`
+
+`POST`
+- Session UUID
+
+Response
+
 ### Scoreboard `/app/routers/scoreboard.py`
 
 Graph/table showing all teams, their score, and how many points they earned last check. All users and unauthenticated users can access.
+
+#### API `localhost:8000/scoreboard`
+
+`GET`
+- no args, this page should be the same for everyone, and isn't behind any authentication
+
+Response
+- Fields containing lists that comprise the graph. Time field will be populated with a timestamp for each check. Team fields will be populated with the total score of that team at that check.
+```json
+{
+	"time": ["09:00", "09:05", "09:10"],
+	"team0": [0, 15, 15],
+	"team15": [0, 15, 30]
+}
+```
 
 ### Detailed info `/app/routers/details.py`
 
 Blue teams are only able to see this page for their team. IOC names are obscured and follow the pattern `<OS>_<DIFFICULTY>_<NUM>`, ex: `WINDOWS_MEDIUM_2`, `LINUX_HARD_3`.
 
 Any account that is not a blue team will be able to see all blue team's detailed info and see the actual name of the IOC like this: `<OS>_<IOC_NAME>_<DIFFICULTY>_<NUM>`, ex: `WINDOWS_SERVICE_MEDIUM_2`, `LINUX_CRON_HARD_3`.
+
+#### API `localhost:8000/details`
+
+`GET`
+- Session UUID
+
+Response
+- Team's current total score
+- Amount of points team earned from last check
+- Fields containing lists that comprise the graph. Boxes have a list of `0/1`s corresponding to a check.
+  - check list (static): `["EASY_1","EASY_2","EASY_3","EASY_4","MEDIUM_1","MEDIUM_2","MEDIUM_3","HARD_1","HARD_2","HARD_3"]`
+```json
+{
+	"firewall": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	"linux_1": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	"windows_1": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+}
+```
 
 ### Admin `/app/routers/admin.py`
 
@@ -342,9 +410,58 @@ Admin/Control panel
 - manually run checks
 - set competition start time
 - pause competition for lunch, able to start again
-- arm/disarm automatic checks
+  - need to make sure we fully kill the process doing the automated checking here
 - change user password
 - clear check_instance and ioc_check_result tables, reset blue_teams score and lastcheckid
+
+#### API `localhost:8000/admin/{}`
+
+`localhost:8000/admin/deploy_iocs`: run deploy scripts 
+- `GET`
+  - Session UUID
+- Response
+  - script success/fail
+  - nice to have: some way to view script output?
+
+`localhost:8000/admin/run_checks`: manually run checks
+- `GET`
+  - Session UUID
+- Response
+  - returns when check is complete
+  - nice to have: some way to view script output?
+
+`localhost:8000/admin/start_time`: set competition start time
+- `POST`
+  - Session UUID
+  - Time
+- Response
+
+`localhost:8000/admin/start_comp`: start competition
+- `GET`
+  - Session UUID
+- Response
+  - PID started
+
+`localhost:8000/admin/stop_comp`: stop competition
+- `GET`
+  - Session UUID
+- Response
+  - PID killed
+
+`localhost:8000/admin/change_pass`: change user password
+- `POST`
+  - Session UUID
+  - Target user
+  - New password
+- Response
+
+`localhost:8000/admin/reset_data`: clear check_instance and ioc_check_result tables, reset blue_teams score and lastcheckid
+- `GET`
+  - Session UUID
+- Response
+  - nullable error
+  - nice to have: run a query that confirms tables and data have been reset
+
 
 ## Database `/db/database.db`
 
