@@ -1,6 +1,84 @@
 # Red Team Scoring
 
-Ansible python api state collection with a React frontend, FastAPI backend, and a SQLModel(SQLite) database to facilitate quantitative red team scoring in CDE. Queries boxes for status of IOCs to determine a team's score.
+Ansible python api state collection with a React frontend, FastAPI backend, and a SQLModel(SQLite) database to facilitate quantitative red team scoring in CDE. Queries boxes for status of indicators of compromise (IOCs) to determine a team's score.
+
+## Components Overview
+```
+  ┌──────────────────────────────────────────────────────────┐
+  │                    Blue Team Networks                    │
+  │  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐  │
+  │  │   Windows    │   │    Linux     │   │   Firewall   │  │
+  │  │    Hosts     │   │    Hosts     │   │    Hosts     │  │
+  │  └──────┬───────┘   └──────┬───────┘   └──────┬───────┘  │
+  │         │                  │                  │          │
+  │         └──────────────────┴──────────────────┘          │
+  │                            │                             │
+  │                    SSH/WinRM Connections                 │
+  └────────────────────────────┼─────────────────────────────┘
+                               │
+                               ▼
+            ┌─────────────────────────────────────────┐
+            │                ANSIBLE                  │
+            │  ┌────────────────────────────────┐     │
+            │  │   Playbooks & Check Scripts    │     │
+            │  └────────────────────────────────┘     │
+            │  ┌────────────────────────────────┐     │
+            │  │   Callback Plugin (scoring)    │     │
+            │  └────────────────┬───────────────┘     │
+            └─────────────────────────────────────────┘
+                                │
+                        Check Results (JSON)
+                                │
+                                ▼
+            ┌─────────────────────────────────────────┐
+            │              FastAPI Backend            │
+            │  ┌────────────────────────────────┐     │
+            │  │        DB Writer Process       │     │
+            │  └────────────────┬───────────────┘     │
+            │  ┌─────────────┐  │  ┌──────────────┐   │
+            │  │   Routes    │  │  │   Ansible    │   │
+            │  │  (API)      │  │  │  Integration │   │
+            │  └──────┬──────┘  │  └──────────────┘   │
+            └─────────┼─────────┼─────────────────────┘
+                      │         │
+                      │         ▼
+                      │   ┌─────────────────────┐
+                      │   │  SQLModel (SQLite)  │
+                      │   │   Database (*.db)   │
+                      │   └─────────────────────┘
+                      │
+                API Requests
+                      │
+                      ▼
+            ┌─────────────────────────────────────────┐
+            │            React Frontend               │
+            │  ┌────────────────────────────────┐     │
+            │  │  • Scoreboard                  │     │
+            │  │  • Admin Panel                 │     │
+            │  │  • Team Details                │     │
+            │  │  • Login/Auth                  │     │
+            │  └────────────────────────────────┘     │
+            └─────────────────────────────────────────┘
+```
+### Ansible
+
+Automates deployment and checking of IOCs. Uses SSH or WinRM, depending on the host OS, for remote command execution. 
+
+### React
+
+Frontend for the scoreboards and admin functionality.
+
+### FastAPI
+
+Interconnection between other components. Serves data to React from an API and provides test/admin funcitonality. Has an Ansible callback plugin that captures check results and stores them in SQLModel.
+
+### SQLModel(SQLite)
+
+This data is based.
+
+### IOCs
+
+Defined in yml files, these are persistence mechanisms or misconfigurations that can be deployed or have their status checked with a corresponding script.
 
 ## File structure
 ```
@@ -8,39 +86,39 @@ Ansible python api state collection with a React frontend, FastAPI backend, and 
 ├── ansible/
 │   ├── plugins/
 │   │   └── callback/
-│   │       └── scoring_queue.py # Callback plugin for managing checks
-│   ├── ansible.cfg              # Points to ./plugins/callback
-│   ├── inventory/               # Blue team network configurations
+│   │       └── scoring_queue.py   # Callback plugin for managing checks
+│   ├── ansible.cfg                # Points to ./plugins/callback
+│   ├── inventory/                 # Blue team network configurations
 │   └── playbooks/
-│       ├── check/               # IOC checking playbooks
-│       └── deploy/              # IOC deployment playbooks
-├── app/                         # FastAPI application
+│       ├── check/                 # IOC checking playbooks
+│       └── deploy/                # IOC deployment playbooks
+├── app/                           # FastAPI application
 │   ├── __init__.py
-│   ├── main.py                  # Application entry point
-│   ├── ansible/                 # Ansible integration
+│   ├── main.py                    # Application entry point
+│   ├── ansible/                   # Ansible integration
 │   │   ├── __init__.py
-│   │   ├── checks.py            # Check execution logic
-│   │   └── deploy.py            # Deploy execution logic
-│   ├── database/                # Database integration
+│   │   ├── checks.py              # Check execution logic
+│   │   └── deploy.py              # Deploy execution logic
+│   ├── database/                  # Database integration
 │   │   ├── __init__.py
-│   │   ├── db_writer.py         # Database writer
-│   └── routes/                 # API endpoints
+│   │   ├── db_writer.py           # Database writer
+│   └── routes/                    # API endpoints
 │       ├── __init__.py
-│       ├── admin.py             # Admin control panel
-│       ├── details.py           # Detailed IOC status
-│       ├── login.py             # Authentication
-│       └── scoreboard.py        # Main scoring display
+│       ├── admin.py               # Admin control panel
+│       ├── details.py             # Detailed IOC status
+│       ├── login.py               # Authentication
+│       └── scoreboard.py          # Main scoring display
 ├── db/
-│   └── database.db              # SQLite database (dev only)
-├── iocs/                        # Indicator of Compromise assets
-│   ├── definitions/             # YAML IOC definitions
-│   ├── check_scripts/           # Scripts to verify IOC status
+│   └── database.db                # SQLite database (dev only)
+├── iocs/                          # Indicator of Compromise assets
+│   ├── definitions/               # YAML IOC definitions
+│   ├── check_scripts/             # Scripts to verify IOC status
 │   │   ├── linux/
 │   │   └── windows/
-│   └── deploy_scripts/          # Scripts to plant IOCs
+│   └── deploy_scripts/            # Scripts to plant IOCs
 │       ├── linux/
 │       └── windows/
-└── payloads/                    # Binary files
+└── payloads/                      # Binary files
 ```
 
 ## Scoring info
@@ -49,6 +127,7 @@ Ansible python api state collection with a React frontend, FastAPI backend, and 
 - even split between easy (1), medium (2) and hard (3)
   - (4, 3, 3)
 - these give 10, 15, 20 points respectively.
+- scores every 5 minutes
 
 ## Design principles
 
@@ -188,7 +267,7 @@ Potentially have dynamic inventory generation like so:
 
 ## Ansible checks `/app/ansible/checks.py`
 
-Run every 5 minutes starting at competition start. Hardcoded start time configurable by admin. Admin also needs to "arm" checks.
+Run every 5 minutes starting at competition start. Hardcoded start time configurable by admin. Admin also needs to "arm" checks. Need to be able to pause and restart for lunch, done manually.
 
 Uses a multiprocessed ansible callback plugin to capture json output from check scripts and queue the output to a db writer process.
 
@@ -224,7 +303,7 @@ IOCID gets assigned upon record creation. CheckID should be the most recent chec
 
 ## Frontend
 
-All pages besides login and scoreboard redirect to the login page if the user is not authenticated. Navigating to `/` will redirect the user to the scoreboard.
+All pages besides login and scoreboard redirect to the login page if the user is not authenticated. Navigating to `/` will redirect the user to the scoreboard. Python files listed here contain the associated API functionality for the matching frontend page.
 
 ### Navigation bar
 
@@ -262,11 +341,12 @@ Admin/Control panel
 - run deploy scripts
 - manually run checks
 - set competition start time
+- pause competition for lunch, able to start again
 - arm/disarm automatic checks
 - change user password
 - clear check_instance and ioc_check_result tables, reset blue_teams score and lastcheckid
 
-## Backend `/db/database.db`
+## Database `/db/database.db`
 
 ### DB Writer `/app/database/db_writer.py`
 
