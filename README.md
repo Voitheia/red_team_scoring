@@ -27,7 +27,6 @@ Ansible python api state collection with a React frontend, FastAPI backend, and 
 │   │   ├── types/                 # If using typescript store all types here
 │   │   └── App.js                 # Entry point for react
 │   └──package.json   
-├── app/                           # FastAPI application
 ├── <a href="#fastapi-functionality">fastapi/</a>                       # FastAPI application
 │   ├── __init__.py
 │   ├── main.py                    # Application entry point
