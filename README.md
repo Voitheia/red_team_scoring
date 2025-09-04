@@ -7,12 +7,12 @@ Ansible python api state collection with a React frontend, FastAPI backend, and 
 <table>
 <tr><td><pre>
 .
-├── ansible/
+├── <a href="#ansible-1">ansible/</a>
 │   ├── plugins/
 │   │   └── callback/
-│   │       └── <a href="#ansible-callback-plugin-ansiblepluginsscallbackscoring_queuepy">scoring_queue.py</a>   # Callback plugin for managing checks
+│   │       └── <a href="#ansible-callback-plugin-ansiblepluginscallbackscoring_queuepy">scoring_queue.py</a>   # Callback plugin for managing checks
 │   ├── ansible.cfg                # Points to ./plugins/callback
-│   ├── inventory/                 # Blue team network configurations
+│   ├── <a href="#ansible-inventory-ansibleinventory">inventory/</a>                 # Blue team network configurations
 │   └── playbooks/
 │       ├── check/                 # IOC checking playbooks
 │       └── deploy/                # IOC deployment playbooks
