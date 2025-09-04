@@ -25,6 +25,7 @@ Ansible python api state collection with a React frontend, FastAPI backend, and 
 │   │   └── deploy.py              # Deploy execution logic
 │   ├── database/                  # Database integration
 │   │   ├── __init__.py
+│   │   ├── <a href="#db-writer-appdatabasemodelspy">models</a>                    # Database models
 │   │   ├── <a href="#db-writer-appdatabasedb_writerpy">db_writer.py</a>           # Database writer
 │   └── routes/                    # API endpoints
 │       ├── __init__.py
@@ -481,7 +482,7 @@ Consumes queue created by ansible callback plugin. Stores check results in the `
 
 `Check_Instance` records should be created when that check starts.
 
-### DB Tables
+### DB Tables `/app/database/models.py`
 
 Use SQLModel to create and interact with these.
 
