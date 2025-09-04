@@ -273,6 +273,11 @@ Run every 5 minutes starting at competition start. Hardcoded start time configur
 
 Uses a multiprocessed ansible callback plugin to capture json output from check scripts and queue the output to a db writer process.
 
+Need to look into:
+- additional cleanup step to ensure temp files are removed even if execution is aborted
+- locking the dirs that ansible puts temp files in somehow so that blue teams can't read them
+- encrypting the scripts and hiding the encryption key somewhere, encryption key should be based on something related to the host, like hostname or ip
+
 ### Ansible callback plugin `/ansible/plugins/callback/scoring_queue.py`
 
 Intended to be run as a subprocess so we can multiprocess the checks. Captures JSON output from the check scripts and queues it for the database writer process.
