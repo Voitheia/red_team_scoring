@@ -3,12 +3,14 @@
 Ansible python api state collection with a React frontend, FastAPI backend, and a SQLModel(SQLite) database to facilitate quantitative red team scoring in CDE. Queries boxes for status of indicators of compromise (IOCs) to determine a team's score.
 
 ## File structure/Table of contents
-```
+
+<table>
+<tr><td><pre>
 .
 ├── ansible/
 │   ├── plugins/
 │   │   └── callback/
-│   │       └── scoring_queue.py   # Callback plugin for managing checks
+│   │       └── <a href="#ansible-callback-plugin-ansiblepluginsscallbackscoring_queuepy">scoring_queue.py</a>   # Callback plugin for managing checks
 │   ├── ansible.cfg                # Points to ./plugins/callback
 │   ├── inventory/                 # Blue team network configurations
 │   └── playbooks/
@@ -19,31 +21,32 @@ Ansible python api state collection with a React frontend, FastAPI backend, and 
 │   ├── main.py                    # Application entry point
 │   ├── ansible/                   # Ansible integration
 │   │   ├── __init__.py
-│   │   ├── checks.py              # Check execution logic
+│   │   ├── <a href="#ansible-checks-appansiblecheckspy">checks.py</a>              # Check execution logic
 │   │   └── deploy.py              # Deploy execution logic
 │   ├── database/                  # Database integration
 │   │   ├── __init__.py
-│   │   ├── db_writer.py           # Database writer
+│   │   ├── <a href="#db-writer-appdatabasedb_writerpy">db_writer.py</a>           # Database writer
 │   └── routes/                    # API endpoints
 │       ├── __init__.py
-│       ├── admin.py               # Admin control panel
-│       ├── details.py             # Detailed IOC status
-│       ├── login.py               # Authentication
-│       └── scoreboard.py          # Main scoring display
+│       ├── <a href="#admin-approutersadminpy">admin.py</a>               # Admin control panel
+│       ├── <a href="#detailed-info-approutersdetailspy">details.py</a>             # Detailed IOC status
+│       ├── <a href="#login-approutersloginpy">login.py</a>               # Authentication
+│       └── <a href="#scoreboard-approutersscoreboardpy">scoreboard.py</a>          # Main scoring display
 ├── db/
-│   └── database.db                # SQLite database (dev only)
+│   └── <a href="#database-dbdatabasedb">database.db</a>                # SQLite database (dev only)
 ├── iocs/                          # Indicator of Compromise assets
-│   ├── definitions/               # YAML IOC definitions
-│   ├── check_scripts/             # Scripts to verify IOC status
+│   ├── <a href="#defining-iocs-iocsdefinitions">definitions/</a>               # YAML IOC definitions
+│   ├── <a href="#ioc-checking-scripts-iocscheck_scripts">check_scripts/</a>             # Scripts to verify IOC status
 │   │   ├── firewall/
 │   │   ├── linux/
 │   │   └── windows/
-│   └── deploy_scripts/            # Scripts to plant IOCs
+│   └── <a href="#ioc-deploy-scripts-iocsdeploy_scripts">deploy_scripts/</a>            # Scripts to plant IOCs
 │       ├── firewall/
 │       ├── linux/
 │       └── windows/
-└── payloads/                      # Binary files
-```
+└── <a href="#payloads-payloads">payloads/</a>                      # Binary files
+</pre></td></tr>
+</table>
 
 ## Components Overview
 ```
@@ -196,7 +199,9 @@ Powershell or bash scripts that ansible will use to deploy the IOCs on the blue 
 
 If an IOC needs a file to be deployed with it, such as `nc` for a simple listener, those files should be placed in the `/payloads/` directory. Use the `copy` ansible module for linux hosts and the `win_copy` module for windows hosts to pull payloads down to targets.
 
-## Ansible inventory `/ansible/inventory`
+## Ansible
+
+### Ansible inventory `/ansible/inventory`
 
 YAML file(s) that define the blue team networks:
 - Number of teams
@@ -267,7 +272,7 @@ Potentially have dynamic inventory generation like so:
       ip_suffix: 254
 ```
 
-## Ansible checks `/app/ansible/checks.py`
+### Ansible checks `/app/ansible/checks.py`
 
 Run every 5 minutes starting at competition start. Hardcoded start time configurable by admin. Admin also needs to "arm" checks. Need to be able to pause and restart for lunch, done manually.
 
