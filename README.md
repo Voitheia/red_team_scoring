@@ -16,6 +16,17 @@ Ansible python api state collection with a React frontend, FastAPI backend, and 
 │   └── playbooks/
 │       ├── check/                 # IOC checking playbooks
 │       └── deploy/                # IOC deployment playbooks
+├── react/         
+│   ├── public/   
+│   │   └── image.png              # Any logos or images   
+│   ├──src/    
+│   │   ├── api/                   # API Calls to backend  
+│   │   ├── css/                   # All CSS files are stored here  
+│   │   ├── components/            # Reusable components
+│   │   ├── pages/                 # Store pages as React Functions
+│   │   ├── types/                 # If using typescript store all types here
+│   │   └── App.js                 # Entry point for react
+│   └──package.json   
 ├── <a href="#fastapi-functionality">fastapi/</a>                       # FastAPI application
 │   ├── __init__.py
 │   ├── main.py                    # Application entry point
