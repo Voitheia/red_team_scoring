@@ -28,6 +28,7 @@ Ansible python api state collection with a React frontend, FastAPI backend, and 
 │   │   └── App.js                 # Entry point for react
 │   └──package.json   
 ├── app/                           # FastAPI application
+├── <a href="#fastapi-functionality">fastapi/</a>                       # FastAPI application
 │   ├── __init__.py
 │   ├── main.py                    # Application entry point
 │   ├── ansible/                   # Ansible integration
@@ -328,7 +329,7 @@ IOCID gets assigned upon record creation. CheckID should be the most recent chec
 
 All pages besides login and scoreboard redirect to the login page if the user is not authenticated. Navigating to `/` will redirect the user to the scoreboard. Python files listed here contain the associated API functionality for the matching frontend page.
 
-### API functionality
+### FastAPI functionality
 
 API functionality is defined below in this format:
 ```
