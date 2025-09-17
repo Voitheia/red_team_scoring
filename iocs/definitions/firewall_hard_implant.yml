@@ -1,0 +1,7 @@
+name: firewall_hard_implant
+description: Stealthier implant which masquerades the process name and is implanted into the boot sequence
+difficulty: 3
+os: firewall
+check_script: check_scripts/firewall/Firewall_Hard_Implant_Check.sh
+deploy_script: deploy_scripts/firewall/Firewall_Hard_Implant_Deploy.sh
+discovery: Use the shell to find the shell, using actual IR techniques (investigating processes, etc)

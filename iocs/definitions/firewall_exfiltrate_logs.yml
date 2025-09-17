@@ -1,0 +1,7 @@
+name: firewall_exfiltrate_logs
+description: Loudly exfiltrate the logs on the firewall via SSH/SCP
+difficulty: 1
+os: firewall
+check_script: check_scripts/firewall/Firewall_Exfiltrate_Check.sh
+deploy_script: deploy_scripts/firewall/Firewall_Exfiltrate_Deploy.sh
+discovery: Use the shell/built in log viewer to find evidence of log exfiltration

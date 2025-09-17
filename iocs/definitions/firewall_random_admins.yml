@@ -1,0 +1,7 @@
+name: firewall_random_admins
+description: A bunch of randomly named admins are added to the firewall 
+difficulty: 1
+os: firewall
+check_script: check_scripts/firewall/Firewall_Random_Admins_Check.sh
+deploy_script: deploy_scripts/firewall/Firewall_Scheduled_Random_Admins_Deploy.sh
+discovery: Use either the GUI or shell to find extraneous users and then remove

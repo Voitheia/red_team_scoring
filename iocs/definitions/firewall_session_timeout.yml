@@ -1,0 +1,7 @@
+name: firewall_session_timeout
+description: Sessions don't time out for the firewall
+difficulty: 2
+os: firewall
+check_script: check_scripts/firewall/Firewall_Session_Timeout_Check.sh
+deploy_script: deploy_scripts/firewall/Firewall_Session_Timeout_Deploy.sh
+discovery: Use the web interface/GUI to find the session timeout TODO be more specific here

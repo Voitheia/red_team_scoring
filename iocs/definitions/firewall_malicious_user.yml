@@ -1,0 +1,7 @@
+name: firewall_scheduled_add_malicious_user
+description: Add a malicious user to the firewall's admin list every 30 min via an rc
+difficulty: 2
+os: firewall
+check_script: check_scripts/firewall/Firewall_Scheduled_User_Adder_Check.sh
+deploy_script: deploy_scripts/firewall/Firewall_Scheduled_User_Adder_Deploy.sh
+discovery: Use either the GUI or shell to find the extra users and then find the root cause and remove
