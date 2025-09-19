@@ -57,7 +57,7 @@ class DatabaseInitializer:
                   ci.timestamp,
                   COALESCE(SUM(icrp.points), 0) AS score
                 FROM check_instance ci
-                LEFT JOIN ioc_check_result_with_points icrp ON ci.check_id = icrp.check_id
+                LEFT JOIN ioc_check_result_with_points icrp ON ci.check_id = icrp.check_instance_id
                 GROUP BY ci.check_id, ci.blue_team_num, ci.timestamp
             """),
             
@@ -89,7 +89,7 @@ class DatabaseInitializer:
                   icrp.error,
                   icrp.points
                 FROM blue_teams bt
-                INNER JOIN ioc_check_result_with_points icrp ON icrp.check_id = bt.last_check_id
+                INNER JOIN ioc_check_result_with_points icrp ON icrp.check_instance_id = bt.last_check_id
                 ORDER BY bt.team_num, icrp.box_ip, icrp.ioc_name
             """),
             
@@ -132,8 +132,7 @@ class DatabaseInitializer:
                     team = BlueTeams(
                         team_num=team_num,
                         last_check_id=None,
-                        total_score=0,
-                        boxes=[]  # Will be populated from inventory
+                        total_score=0
                     )
                     session.add(team)
             session.commit()

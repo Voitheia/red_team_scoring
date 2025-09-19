@@ -1,0 +1,7 @@
+name: windows_test_ioc
+description: check if a file exists in ~
+difficulty: 2
+os: windows
+check_script: check_scripts/windows/Windows_Test_IOC_Check.ps1
+deploy_script: deploy_scripts/windows/Windows_Test_IOC_Deploy.ps1
+discovery: check if a file exists in ~
