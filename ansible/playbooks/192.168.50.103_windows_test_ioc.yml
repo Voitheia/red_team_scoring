@@ -1,0 +1,12 @@
+- gather_facts: false
+  hosts: 192.168.50.103
+  name: Check windows_test_ioc on 192.168.50.103
+  tasks:
+  - changed_when: false
+    failed_when: false
+    name: Execute windows_test_ioc check
+    register: check_result
+    script: ../../iocs/check_scripts/windows/Windows_Test_IOC_Check.ps1
+  - debug:
+      var: check_result.stdout
+    name: Display result

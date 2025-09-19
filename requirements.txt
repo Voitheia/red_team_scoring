@@ -1,6 +1,8 @@
-fastapi 
-uvicorn[standard] 
-python-jose[cryptography] 
-passlib[bcrypt] 
+fastapi
+uvicorn[standard]
+python-jose[cryptography]
+passlib[bcrypt]
 python-dotenv
 sqlmodel
+ansible-runner
+pyyaml

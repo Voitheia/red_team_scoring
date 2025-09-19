@@ -1,0 +1,16 @@
+teams:
+- boxes:
+  - ip: 192.168.50.31
+    name: test-linux
+    os: linux
+    password: testuser
+    port: 22
+    username: testuser
+  - ip: 192.168.50.103
+    name: test-windows
+    os: windows
+    password: testuser
+    port: 5986
+    username: testuser
+  name: Test Team Blue
+  team_num: 1

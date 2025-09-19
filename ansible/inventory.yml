@@ -1,0 +1,39 @@
+all:
+  children:
+    firewall:
+      hosts: {}
+      vars:
+        ansible_connection: ssh
+        ansible_port: 22
+        ansible_ssh_common_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+    linux:
+      hosts:
+        192.168.50.31:
+          ansible_host: 192.168.50.31
+          ansible_password: testuser
+          ansible_user: testuser
+          box_name: test-linux
+          team_number: 1
+      vars:
+        ansible_connection: ssh
+        ansible_port: 22
+        ansible_ssh_common_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+    windows:
+      hosts:
+        192.168.50.103:
+          ansible_connection: psrp
+          ansible_host: 192.168.50.103
+          ansible_password: testuser
+          ansible_port: 5986
+          ansible_psrp_auth: basic
+          ansible_psrp_cert_validation: ignore
+          ansible_psrp_protocol: https
+          ansible_user: testuser
+          box_name: test-windows
+          team_number: 1
+      vars:
+        ansible_connection: winrm
+        ansible_port: 5985
+        ansible_winrm_scheme: http
+        ansible_winrm_server_cert_validation: ignore
+        ansible_winrm_transport: basic
