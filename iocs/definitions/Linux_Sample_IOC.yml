@@ -4,4 +4,4 @@ difficulty: 2
 os: linux
 check_script: check_scripts/linux/Linux_Sample_IOC_Check.sh
 deploy_script: deploy_scripts/linux/Linux_Sample_IOC_Deploy.sh
-discovery: Describe how the blue teams are intended to discover this IOC. This information is mostly for white team if a blue team is struggling or if we determine that a blue team needs a hint.can yo
+discovery: Describe how the blue teams are intended to discover this IOC. This information is mostly for white team if a blue team is struggling or if we determine that a blue team needs a hint.

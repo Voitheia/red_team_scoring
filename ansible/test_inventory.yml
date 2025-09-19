@@ -1,0 +1,38 @@
+# Test Ansible Inventory
+# This is the format Ansible uses for targeting hosts
+all:
+  children:
+    windows:
+      hosts:
+        192.168.50.103:
+          ansible_host: 192.168.50.103
+          ansible_user: testuser
+          ansible_password: testuser
+          ansible_connection: psrp
+          team_number: 1
+          box_name: test-windows
+      vars:
+        ansible_connection: psrp
+        ansible_psrp_cert_validation: ignore
+
+    linux:
+      hosts:
+        192.168.50.31:
+          ansible_host: 192.168.50.31
+          ansible_user: testuser
+          ansible_password: testuser
+          ansible_connection: ssh
+          ansible_port: 22
+          team_number: 1
+          box_name: test-linux
+      vars:
+        ansible_connection: ssh
+        ansible_port: 22
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+
+    firewall:
+      hosts: {}
+      vars:
+        ansible_connection: ssh
+        ansible_port: 22
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'

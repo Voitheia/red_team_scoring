@@ -1,0 +1,18 @@
+# Test Inventory Configuration
+# This defines the teams and boxes for testing
+teams:
+  - team_num: 1
+    name: "Test Team Blue"
+    boxes:
+      - ip: "192.168.50.31"
+        name: "test-linux"
+        os: "linux"
+        username: "testuser"
+        password: "testuser"
+      - ip: "192.168.50.103"
+        name: "test-windows"
+        os: "windows"
+        username: "testuser"
+        password: "testuser"
+        port: 5986  # PSRP port for Windows
+        connection: "psrp"  # Use PSRP instead of WinRM

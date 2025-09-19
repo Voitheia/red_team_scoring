@@ -1,0 +1,7 @@
+name: linux_test_ioc
+description: check if a file exists in ~
+difficulty: 2
+os: linux
+check_script: check_scripts/linux/Linux_Test_IOC_Check.sh
+deploy_script: deploy_scripts/linux/Linux_Test_IOC_Deploy.sh
+discovery: check if a file exists in ~
