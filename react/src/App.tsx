@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage'
 import DashboardPage from './pages/DashboardPage';
+import { AuthProvider } from './AuthContext';
 
 const AppWrapper = () => {
   return (
@@ -18,7 +19,9 @@ const AppWrapper = () => {
 
 const App = () => (
   <Router>
-    <AppWrapper />
+    <AuthProvider>
+      <AppWrapper />
+    </AuthProvider>
   </Router>
 );
 

@@ -5,7 +5,7 @@ export interface LoginResponse {
 }
 
 export async function login(username: string, password: string): Promise<LoginResponse> {
-  /*const response = await fetch("http://localhost:5000/api/login", {
+  const response = await fetch("http://localhost:3000/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -16,8 +16,8 @@ export async function login(username: string, password: string): Promise<LoginRe
   if (!response.ok) {
     throw new Error(`Login failed: ${response.statusText}`);
   }
-  return response.json();*/
+  return response.json();
 
-  let response: LoginResponse = {token: "ABCDEFG123",userid:  "58", username: "redteam"};
-  return response;
+  //let response: LoginResponse = {token: "ABCDEFG123",userid:  "58", username: "redteam"};
+  //return response;
 }

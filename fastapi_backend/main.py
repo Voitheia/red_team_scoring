@@ -38,7 +38,7 @@ app = FastAPI(lifespan=lifespan, title="Red Team Scoring API", version="1.0.0")
 # CORS alert
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # frontend origin
+    allow_origins=["http://localhost:5173"],  # frontend origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
