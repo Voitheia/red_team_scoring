@@ -20,9 +20,9 @@ const Login: React.FC = () => {
         setError("");
         try {
             const data = await login(username, password);
-            console.log("Login successful:", data);
+            console.log("Login successful, redirecting:", data);
             localStorage.setItem("authToken", data.token);
-            navigate('/'); 
+            window.location.href = "/";
         } catch (err: any) {
             setError(err.message || "Invalid credentials.");
         }

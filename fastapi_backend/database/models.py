@@ -9,6 +9,7 @@ class Users(SQLModel, table=True):
     password: str
     is_blue_team: bool = Field(default=True)
     blue_team_num: int = Field(foreign_key="blue_teams.team_num")
+    is_admin: bool = Field(default=False)
 
 
 class BlueTeams(SQLModel, table=True):

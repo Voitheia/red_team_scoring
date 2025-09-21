@@ -4,7 +4,7 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_backend.routes import login, admin
+from fastapi_backend.routes import login, admin, scoreboard
 from fastapi_backend.core.orchestrator import CompetitionOrchestrator
 
 # Configure logging
@@ -55,3 +55,4 @@ def read_item(item_id: int, q: Union[str, None] = None):
 
 app.include_router(login.router)
 app.include_router(admin.router)
+app.include_router(scoreboard.router)
