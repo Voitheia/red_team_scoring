@@ -1,10 +1,10 @@
-
-// TODO: This really should be using the JWT or an authenticated API of some kind.
-
 export interface LoginResponse {
   token: string;
   userid: string;
   username: string
+  admin: boolean,
+  is_blue_team: boolean,
+  blueteam_num: number
 }
 
 export interface DeployIOCsResponse {
@@ -38,10 +38,81 @@ export interface ResetDataResponse {
   message: string;
 }
 
-const API_BASE = "http://localhost:3000/admin";
+export interface UserSummary {
+  user_id: number;
+  username: string;
+  is_admin: boolean;
+  is_blue_team: boolean;
+  blue_team_num: number | null;
+}
+
+export interface GetUsersResponse {
+  status: string;
+  users: UserSummary[];
+}
+
+const API_BASE = "http://localhost:3000";
+
+
+export async function getUsers(): Promise<GetUsersResponse> {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/admin/get_users`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${storedToken}` },
+  });
+  if (!response.ok) {
+    throw new Error(`getUsers failed: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function removeUser(body: { user_id: number }): Promise<any> {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/admin/remove_user`, {
+    method: "DELETE",
+    headers: { 
+      Authorization: `Bearer ${storedToken}`,
+      "Content-Type": "application/json" 
+      },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`removeUser failed: ${text}`);
+  }
+  return response.json();
+}
+
+export async function addUser(body: {
+  user_id: number;
+  username: string;
+  password: string;
+  is_admin: boolean;
+  is_blue_team: boolean;
+  blue_team_num: number | null;
+}): Promise<any> {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/admin/add_user`, {
+    method: "POST",
+    headers: { 
+    Authorization: `Bearer ${storedToken}`,
+    "Content-Type": "application/json" 
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`addUser failed: ${text}`);
+  }
+  return response.json();
+}
+
 
 export async function deployIOCs(): Promise<DeployIOCsResponse> {
-  const response = await fetch(`${API_BASE}/deploy_iocs`, {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/admin/deploy_iocs`,
+  {
+    headers: { Authorization: `Bearer ${storedToken}` },
     method: "POST",
   });
   if (!response.ok) {
@@ -52,7 +123,9 @@ export async function deployIOCs(): Promise<DeployIOCsResponse> {
 }
 
 export async function runChecks(): Promise<RunChecksResponse> {
-  const response = await fetch(`${API_BASE}/run_checks`, {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/admin/run_checks`, {
+    headers: { Authorization: `Bearer ${storedToken}` },
     method: "POST",
   });
   if (!response.ok) {
@@ -63,7 +136,9 @@ export async function runChecks(): Promise<RunChecksResponse> {
 }
 
 export async function startCompetition(): Promise<CompetitionStatusResponse> {
-  const response = await fetch(`${API_BASE}/start_comp`, {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/admin/start_comp`, {
+    headers: { Authorization: `Bearer ${storedToken}` },
     method: "POST",
   });
   if (!response.ok) {
@@ -74,7 +149,9 @@ export async function startCompetition(): Promise<CompetitionStatusResponse> {
 }
 
 export async function stopCompetition(): Promise<CompetitionStatusResponse> {
-  const response = await fetch(`${API_BASE}/stop_comp`, {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/admin/stop_comp`, {
+    headers: { Authorization: `Bearer ${storedToken}` },
     method: "POST",
   });
   if (!response.ok) {
@@ -85,7 +162,11 @@ export async function stopCompetition(): Promise<CompetitionStatusResponse> {
 }
 
 export async function getSystemStatus(): Promise<SystemStatus> {
-  const response = await fetch(`${API_BASE}/status`);
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/admin/status`, {
+    
+    headers: { Authorization: `Bearer ${storedToken}` }   
+});
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`Get status failed: ${errorText}`);
@@ -94,7 +175,9 @@ export async function getSystemStatus(): Promise<SystemStatus> {
 }
 
 export async function resetCompetitionData(): Promise<ResetDataResponse> {
-  const response = await fetch(`${API_BASE}/reset_data`, {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/admin/reset_data`, {
+    headers: { Authorization: `Bearer ${storedToken}` },
     method: "POST",
   });
   if (!response.ok) {
@@ -106,9 +189,11 @@ export async function resetCompetitionData(): Promise<ResetDataResponse> {
 
 
 export async function login(username: string, password: string): Promise<LoginResponse> {
-  const response = await fetch("http://localhost:3000/login", {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/login`, {
     method: "POST",
     headers: {
+      Authorization: `Bearer ${storedToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ username, password }),

@@ -8,9 +8,7 @@ import ProtectedRoute from "../components/protectedroute";
 
 const DashboardPage: React.FC = () => {
   return (
-    <ProtectedRoute>
       <DashboardContent />
-    </ProtectedRoute>
   );
 };
 

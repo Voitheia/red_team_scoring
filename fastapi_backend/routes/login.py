@@ -30,7 +30,9 @@ def login_user(data: LoginRequest):
             "token": token,
             "user_id": user.user_id,
             "username": user.username,
-            "admin": user.is_admin
+            "admin": user.is_admin,
+            "is_blue_team": user.is_blue_team,
+            "blueteam_num": user.blue_team_num
         }
 
 @router.get("/me")
@@ -39,6 +41,8 @@ def get_me(current_user: Users = Depends(get_current_user)):
         "user": {
             "user_id": current_user.user_id,
             "username": current_user.username,
-            "admin": current_user.is_admin
+            "admin": current_user.is_admin,
+            "is_blue_team": current_user.is_blue_team,
+            "blueteam_num": current_user.blue_team_num
         }
     }

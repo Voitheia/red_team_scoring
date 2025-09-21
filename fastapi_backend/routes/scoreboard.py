@@ -11,15 +11,6 @@ logger = logging.getLogger(__name__)
 
 @router.get("/scoreboard", response_model=Dict[str, Any])
 async def get_scoreboard():
-    """
-    Returns scoreboard data for all teams across all checks.
-    Format:
-    {
-        "time": ["09:00", "09:05", "09:10"],
-        "team0": [0, 15, 15],
-        "team15": [0, 15, 30]
-    }
-    """
     try:
         with Session(engine) as session:
             # Query all scoreboard entries ordered by timestamp ascending, then team_num

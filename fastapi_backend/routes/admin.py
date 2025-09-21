@@ -1,13 +1,27 @@
-from fastapi import APIRouter, HTTPException, Depends
-from typing import Dict, Any
+from fastapi import APIRouter, HTTPException, Depends, Body, Query
+from typing import Dict, Any, Optional
+from sqlmodel import Session, select
 import logging
 from fastapi_backend.database.models import Users
-from fastapi_backend.utils.auth import get_current_user, SECRET_KEY
-
+from fastapi_backend.database.db_writer import engine
+from fastapi_backend.utils.auth import Users, get_current_user, SECRET_KEY
+from pydantic import BaseModel
 from fastapi_backend.core.competition_state import CompetitionStatus
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 logger = logging.getLogger(__name__)
+
+class DelUserRequest(BaseModel):
+    user_id: int
+
+class AddUserRequest(BaseModel):
+    user_id: int
+    username: str
+    password: str
+    is_admin: bool
+    is_blue_team: bool
+    blue_team_num: Optional[int] = None
+
 
 def get_orchestrator():
     """Dependency to get orchestrator instance"""
@@ -24,11 +38,131 @@ async def check_admin(current_user: Users):
         )
     return
 
+
+@router.get("/get_users")
+async def get_users(
+    current_user: Users = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Returns a list of all users with relevant info. Admin-only.
+    """
+    await check_admin(current_user)
+
+    try:
+        with Session(engine) as session:
+            statement = select(Users).order_by(Users.user_id)
+            results = session.exec(statement).all()
+
+        users_data = [
+            {
+                "user_id": user.user_id,
+                "username": user.username,
+                "is_admin": user.is_admin,
+                "is_blue_team": user.is_blue_team,
+                "blue_team_num": user.blue_team_num,
+            }
+            for user in results
+        ]
+
+        return {
+            "status": "success",
+            "users": users_data
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to retrieve users: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch users")
+
+
+from fastapi import Body
+
+@router.delete("/remove_user")
+async def remove_user(
+    user_req: DelUserRequest = Body(...),
+    current_user: Users = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Remove a user by user_id. Admin-only.
+    """
+    await check_admin(current_user)
+
+    try:
+        if current_user.user_id == user_req.user_id:
+            raise HTTPException(status_code=400, detail="You cannot remove yourself.")
+
+        with Session(engine) as session:
+            target_user = session.get(Users, user_req.user_id)
+            if not target_user:
+                raise HTTPException(status_code=404, detail="User not found")
+
+            session.delete(target_user)
+            session.commit()
+
+        return {
+            "status": "success",
+            "message": f"User ID {user_req.user_id} deleted successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete user {user_req.user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@router.post("/add_user")
+async def add_user(user: AddUserRequest, current_user: Users = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Add a new user. Admin-only.
+    """
+    await check_admin(current_user)
+
+    try:
+        with Session(engine) as session:
+            # Check for existing ID
+            if session.get(Users, user.user_id):
+                raise HTTPException(status_code=400, detail="User ID already exists")
+
+            # Check for existing username
+            existing_username = session.exec(
+                select(Users).where(Users.username == user.username)
+            ).first()
+            if existing_username:
+                raise HTTPException(status_code=400, detail="Username already exists")
+
+            # Create new user
+            new_user = Users(
+                user_id=user.user_id,
+                username=user.username,
+                password=user.password,
+                is_admin=user.is_admin,
+                is_blue_team=user.is_blue_team,
+                blue_team_num=user.blue_team_num if user.is_blue_team else None
+            )
+
+            session.add(new_user)
+            session.commit()
+
+        return {
+            "status": "success",
+            "message": f"User '{user.username}' added successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to add user: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/deploy_iocs")
 async def deploy_iocs(current_user: Users = Depends(get_current_user), orch=Depends(get_orchestrator)) -> Dict[str, Any]:
     """Deploy IOCs to all target systems"""
     try:
-        check_admin(current_user)
+        await check_admin(current_user)
         if orch.state.status != CompetitionStatus.NOT_STARTED:
             raise HTTPException(
                 status_code=400,
@@ -53,7 +187,7 @@ async def deploy_iocs(current_user: Users = Depends(get_current_user), orch=Depe
 async def run_checks(current_user: Users = Depends(get_current_user),orch=Depends(get_orchestrator)) -> Dict[str, Any]:
     """Manually trigger a check cycle"""
     try:
-        check_admin(current_user)
+        await check_admin(current_user)
         if not orch.state.can_run_checks():
             raise HTTPException(
                 status_code=400,
@@ -81,7 +215,7 @@ async def run_checks(current_user: Users = Depends(get_current_user),orch=Depend
 async def start_competition(current_user: Users = Depends(get_current_user),orch=Depends(get_orchestrator)) -> Dict[str, Any]:
     """Start the competition"""
     try:
-        check_admin(current_user)
+        await check_admin(current_user)
         await orch.start_competition()
         return {
             "status": "success",
@@ -102,7 +236,7 @@ async def start_competition(current_user: Users = Depends(get_current_user),orch
 async def stop_competition(current_user: Users = Depends(get_current_user),orch=Depends(get_orchestrator)) -> Dict[str, Any]:
     """Stop the competition"""
     try:
-        check_admin(current_user)
+        await check_admin(current_user)
         await orch.stop_competition()
         return {
             "status": "success",
@@ -121,7 +255,7 @@ async def stop_competition(current_user: Users = Depends(get_current_user),orch=
 async def get_status(current_user: Users = Depends(get_current_user),orch=Depends(get_orchestrator)) -> Dict[str, Any]:
     """Get comprehensive system status"""
     try:
-        check_admin(current_user)
+        await check_admin(current_user)
         return orch.get_status()
         # Fix HTTPExceptions being eaten elsewhere
     except HTTPException:
@@ -135,7 +269,7 @@ async def get_status(current_user: Users = Depends(get_current_user),orch=Depend
 async def reset_data(current_user: Users = Depends(get_current_user),orch=Depends(get_orchestrator)) -> Dict[str, Any]:
     """Reset competition data (clear scores and checks)"""
     try:
-        check_admin(current_user)
+        await check_admin(current_user)
         active = orch.state.is_active()
         if active:
             raise HTTPException(

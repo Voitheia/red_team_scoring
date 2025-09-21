@@ -14,7 +14,7 @@ const AppNavbar: React.FC<NavbarProps> = ({ admin }) => {
     <Navbar bg="light" expand="lg" className="mb-3">
       <Container>
         <LinkContainer to={admin ? "/admin" : "/"}>
-          <Navbar.Brand>{admin ? "Admin Panel" : "Home"}</Navbar.Brand>
+          <Navbar.Brand>{admin ? "Admin Panel" : "Scoreboard"}</Navbar.Brand>
         </LinkContainer>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
