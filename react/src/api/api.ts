@@ -43,7 +43,7 @@ export interface UserSummary {
   username: string;
   is_admin: boolean;
   is_blue_team: boolean;
-  blue_team_num: number | null;
+  blueteam_num: number | null;
 }
 
 export interface GetUsersResponse {
@@ -89,7 +89,7 @@ export async function addUser(body: {
   password: string;
   is_admin: boolean;
   is_blue_team: boolean;
-  blue_team_num: number | null;
+  blueteam_num: number | null;
 }): Promise<any> {
   const storedToken = localStorage.getItem("authToken");
   const response = await fetch(`${API_BASE}/admin/add_user`, {

@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage'
 import DashboardPage from './pages/DashboardPage';
 import { AuthProvider } from './AuthContext';
+import DetailPage from './pages/DetailPage';
 
 
 
@@ -14,6 +15,7 @@ const AppWrapper = () => {
         <Route path="/" element={<DashboardPage />}/>
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/details" element={<DetailPage />}/>
       </Routes>
     </div>
   );

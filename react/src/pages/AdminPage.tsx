@@ -21,7 +21,7 @@ type User = {
   username: string;
   is_admin: boolean;
   is_blue_team: boolean;
-  blue_team_num: number | null;
+  blueteam_num: number | null;
 };
 
 const AdminPage: React.FC = () => {
@@ -166,7 +166,7 @@ const ManageUsers: React.FC = () => {
     username: "",
     is_admin: false,
     is_blue_team: false,
-    blue_team_num: null,
+    blueteam_num: null,
     password: "",
   });
 
@@ -210,7 +210,7 @@ const ManageUsers: React.FC = () => {
         password: newUser.password!,
         is_admin: newUser.is_admin!,
         is_blue_team: newUser.is_blue_team!,
-        blue_team_num: newUser.is_blue_team ? newUser.blue_team_num : null,
+        blueteam_num: newUser.is_blue_team ? newUser.blueteam_num : null,
       });
       setShowAddModal(false);
       fetchUsers();
@@ -220,7 +220,7 @@ const ManageUsers: React.FC = () => {
         username: "",
         is_admin: false,
         is_blue_team: false,
-        blue_team_num: null,
+        blueteam_num: null,
         password: "",
       });
     } catch (err: any) {
@@ -256,7 +256,7 @@ const ManageUsers: React.FC = () => {
                   <td>{u.username}</td>
                   <td>{u.is_admin ? "Yes" : "No"}</td>
                   <td>{u.is_blue_team ? "Yes" : "No"}</td>
-                  <td>{u.is_blue_team && u.blue_team_num != null ? u.blue_team_num : "-"}</td>
+                  <td>{u.is_blue_team && u.blueteam_num != null ? u.blueteam_num : "-"}</td>
                   <td>
                     <Button
                       variant="danger"
@@ -320,7 +320,7 @@ const ManageUsers: React.FC = () => {
                   setNewUser({ 
                     ...newUser, 
                     is_blue_team: e.target.checked,
-                    blue_team_num: null,
+                    blueteam_num: null,
                   });
                 }}
               />
@@ -330,9 +330,9 @@ const ManageUsers: React.FC = () => {
                 <Form.Label>Blue Team Number</Form.Label>
                 <Form.Control
                   type="number"
-                  value={newUser.blue_team_num || ""}
+                  value={newUser.blueteam_num || ""}
                   onChange={(e) =>
-                    setNewUser({ ...newUser, blue_team_num: Number(e.target.value) })
+                    setNewUser({ ...newUser, blueteam_num: Number(e.target.value) })
                   }
                 />
               </Form.Group>

@@ -6,7 +6,7 @@ interface User {
   username: string;
   admin: boolean;
   is_blue_team: boolean;
-  blue_team_num: number
+  blueteam_num: number
 }
 
 interface AuthContextType {
@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const res = await apiLogin(username, password);
     console.log(res);
     setToken(res.token);
-    setUser({id: res.userid, username: res.username, admin: res.admin, is_blue_team: res.is_blue_team, blue_team_num: res.blue_team_num});
+    setUser({id: res.userid, username: res.username, admin: res.admin, is_blue_team: res.is_blue_team, blueteam_num: res.blueteam_num});
     localStorage.setItem("authToken", res.token);
   };
 

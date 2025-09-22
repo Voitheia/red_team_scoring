@@ -16,7 +16,7 @@ async def get_status(current_user: Users = Depends(get_current_user)) -> Dict[st
             # show for all teams
             print("Admin user, showing for all teams")
         elif (current_user.is_blue_team):
-            print("User Blueteamer: " + current_user.blue_team_num)
+            print("User Blueteamer: " + current_user.blueteam_num)
         # Fix HTTPExceptions being eaten elsewhere
     except HTTPException:
         # Rethrow HTTPException without logging as error, just pass through

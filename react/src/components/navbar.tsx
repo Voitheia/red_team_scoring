@@ -19,12 +19,12 @@ const AppNavbar: React.FC<NavbarProps> = ({ admin }) => {
         {user && (<span className="mx-3 text-muted">|</span>)}
         {user && !user?.is_blue_team && (
                 <LinkContainer to="/details">
-                <Navbar.Brand>Blue Team Details</Navbar.Brand>
+                <Navbar.Brand>Blue Team Scoring Details</Navbar.Brand>
               </LinkContainer>
         )}
         {user && user?.is_blue_team && (
                 <LinkContainer to="/details">
-                <Navbar.Brand>{`Team ${user?.blue_team_num} Scoring`}</Navbar.Brand>
+                <Navbar.Brand>{`Team ${user?.blueteam_num} Score Breakdown`}</Navbar.Brand>
               </LinkContainer>
         )}
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
