@@ -5,6 +5,16 @@
   --bg-color-2: #282828;
   --bg-color-3: #3C3836;
 
+  --bs-body-bg: var(--bg-color-1);
+  --bs-body-bg-rgb: var(--bs-body-bg-rgb);
+  --bs-body-color: var(--fg-color-1);
+  --bs-emphasis-color-rgb: var(--fg-color-2);
+  --bs-light: var(--fg-color-2);
+  --bs-light-rgb: 60,56,54;
+  --bs-secondary-bg: var(--bg-color-2);
+  --bs-tertiary-bg: var(--bg-color-3);
+  --bs-bg-opacity: 1;
+
   --fg-color-1: #FBF1C7;
   --fg-color-2: #EBDBB2;
   --fg-color-3: #D5C4A1;
@@ -24,6 +34,9 @@
 
   --page-margin: 15vw;
   --content-margin: 10vw;
+
+  --bs-body-font-family: 'Kode Mono', monospace;
+  --bs-font-monospace: 'Kode Mono', monospace;
 }
 
 p, li, span {
@@ -58,7 +71,7 @@ h4 {
 }
 
 body {
-  background-color: var(--bg-color-1);
+  font-family: var(--bs-body-font-family);
 }
 
 * {

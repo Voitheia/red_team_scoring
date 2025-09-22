@@ -4,8 +4,10 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_backend.routes import login, admin
+from fastapi_backend.routes import login, admin, scoreboard, details
 from fastapi_backend.core.orchestrator import CompetitionOrchestrator
+
+API_VERSION = "1.0.0"
 
 # Configure logging
 logging.basicConfig(
@@ -33,7 +35,7 @@ async def lifespan(app: FastAPI):
     if orchestrator:
         await orchestrator.shutdown()
 
-app = FastAPI(lifespan=lifespan, title="Red Team Scoring API", version="1.0.0")
+app = FastAPI(lifespan=lifespan, title="Red Team Scoring API", version=API_VERSION)
 
 # CORS alert
 app.add_middleware(
@@ -46,7 +48,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"Red Team Scoring": API_VERSION}
 
 
 @app.get("/items/{item_id}")
@@ -55,3 +57,5 @@ def read_item(item_id: int, q: Union[str, None] = None):
 
 app.include_router(login.router)
 app.include_router(admin.router)
+app.include_router(scoreboard.router)
+app.include_router(details.router)

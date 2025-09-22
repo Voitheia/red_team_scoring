@@ -12,24 +12,24 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def get_user_from_token(token: str) -> Users:
     try:
-        print("🔐 Raw token received:", token)
+        #print("Raw token received:", token)
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print("✅ JWT payload:", payload)
+        #print("JWT payload:", payload)
 
         user_id = payload.get("sub")
-        print("👤 Extracted user_id:", user_id)
+        #print("Extracted user_id:", user_id)
 
         with Session(engine) as session:
             user = session.exec(select(Users).where(Users.user_id == user_id)).first()
-            print("📦 Found user in DB:", user)
+            #print("Found user in DB:", user)
 
             if user:
                 return user
 
     except JWTError as e:
-        print("❌ JWT Error:", e)
+        print("JWT Error:", e)
     except Exception as e:
-        print("❌ General Error:", e)
+        print("General Error:", e)
 
     raise HTTPException(status_code=401, detail="Invalid token")
 

@@ -5,6 +5,8 @@ import AdminPage from './pages/AdminPage'
 import DashboardPage from './pages/DashboardPage';
 import { AuthProvider } from './AuthContext';
 
+
+
 const AppWrapper = () => {
   return (
     <div className="app-container">

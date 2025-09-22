@@ -1,29 +1,28 @@
-import React from "react";
-import Navbar from "../components/navbar";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import AppNavbar from "../components/navbar";
 import Scoreboard from "../components/scoreboard";
 import '../styles/App.css';
 import { useAuth } from "../AuthContext";
+import ProtectedRoute from "../components/protectedroute";
 
 const DashboardPage: React.FC = () => {
-    const { user, logout } = useAuth();
-  
-    console.log("User from context:", user);
-  
-    if (!user) return <p>Loading user...</p>;
-  
-    return (
-      <section className="dashboard-page-container">
-        <Navbar admin={false} />
-        <div className="dashboard-content-container">
-          <div>
-            <h1>Welcome, {user.username}</h1>
-            <button onClick={logout}>Logout</button>
-          </div>
-          <Scoreboard />
-        </div>
-      </section>
-    );
-  };
-  
+  return (
+      <DashboardContent />
+  );
+};
+
+const DashboardContent: React.FC = () => {
+  const { user } = useAuth();
+
+  return (
+    <div>
+    <AppNavbar admin={user?.admin ?? false} />
+    <section className="dashboard-page-container">
+        <Scoreboard />
+    </section>
+    </div>
+  );
+};
 
 export default DashboardPage;
