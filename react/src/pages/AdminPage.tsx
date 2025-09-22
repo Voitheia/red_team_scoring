@@ -238,7 +238,7 @@ const ManageUsers: React.FC = () => {
           <Button onClick={() => setShowAddModal(true)} variant="primary" className="mb-3">
             Add User
           </Button>
-          <Table striped bordered hover size="sm">
+          <Table striped variant="dark" bordered hover size="sm">
             <thead>
               <tr>
                 <th>ID</th>

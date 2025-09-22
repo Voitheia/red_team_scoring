@@ -19,9 +19,7 @@ const DashboardContent: React.FC = () => {
     <div>
     <AppNavbar admin={user?.admin ?? false} />
     <section className="dashboard-page-container">
-      <div className="dashboard-content-container">
         <Scoreboard />
-      </div>
     </section>
     </div>
   );

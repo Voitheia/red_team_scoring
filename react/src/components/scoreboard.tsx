@@ -47,7 +47,14 @@ const Scoreboard: React.FC = () => {
   const prevIndex = lastIndex - 1 >= 0 ? lastIndex - 1 : 0;
 
   return (
-    <div>
+    <div
+      style={{
+        margin: "40px auto",
+        padding: "20px",
+        maxWidth: "90%",
+        width: "100%",
+      }}
+    >
       <section className="scoreboard-container">
       <h2 className="scoreboard-header">Scoreboard</h2>
       <p>Last update: {data.time[lastIndex]}</p>
