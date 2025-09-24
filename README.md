@@ -160,7 +160,8 @@ An IOC is a single misconfiguration, persistence mechanism, etc. These are defin
 - Difficulty (Easy, Medium or Hard)
 - OS (Windows, Linux, and/or Firewall)
 - Script path that will check for the IOC (bash or powershell)
-- Discovery: How are the blue teams intended to discover this IOC? (this is for white team)
+- Short_Discovery: (Tooltip) How are the blue teams intended to discover this IOC? (this is for white team)
+- Long_Discovery: (Detailed) How are the blue teams intended to discover this IOC? (this is for white team)
 
 #### Windows example
 
@@ -171,7 +172,8 @@ difficulty: 2
 os: windows
 check_script: check_scripts/windows/Windows_Service_Check.ps1
 deploy_script: deploy_scripts/windows/Windows_Service_Deploy.ps1
-discovery: Check services.exe, sc.exe query, wmic, netstat, etc.
+short_discovery: Check services.exe, sc.exe query, wmic, netstat, etc.
+long_discovery: long discovery
 ```
 
 #### Linux example
@@ -183,7 +185,8 @@ difficulty: 1
 os: linux
 check_script: check_scripts/linux/Linux_Cron_Check.sh
 deploy_script: deploy_scripts/linux/Linux_Cron_Deploy.sh
-discovery: Check crontab -l and /etc/cron.d/
+short_discovery: Check crontab -l and /etc/cron.d/
+long_discovery: long discovery
 ```
 
 ### IOC checking scripts `/iocs/check_scripts`
@@ -348,7 +351,7 @@ All response data will have a nullable `error` field unless otherwise mentioned.
 
 Unauthenticated sessions have the login and scoreboard pages available.
 
-Authenticated sessions have the logout, scoreboard, detailed info, and admin (if admin user) pages available.
+Authenticated sessions have the logout, scoreboard, detailed info, IOCs, and admin (if admin user) pages available.
 
 login/logout will always be the rightmost link, separated from the rest by a `|`. the rest of the links are alphabetized and right justified.
 
@@ -422,6 +425,18 @@ Response
 	"windows_1": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 }
 ```
+
+### IOCs `/app/routers/iocs.py`
+
+Contains the detailed information about the IOCs. Has accordions for each OS, and then each IOC within each OS. Displays fields name, description, difficulty, short_discovery, long_discovery.
+
+#### API `localhost:8000/iocs`
+
+`GET`
+- no args
+
+Response
+- one huge json containing the data
 
 ### Admin `/app/routers/admin.py`
 
