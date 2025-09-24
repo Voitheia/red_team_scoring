@@ -83,6 +83,28 @@ export async function removeUser(body: { user_id: number }): Promise<any> {
   return response.json();
 }
 
+export async function changePassword(body: {
+  user_id: number;
+  password: string;
+}): Promise<any> {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/admin/change_password`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${storedToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Change password failed: ${text}`);
+  }
+
+  return response.json();
+}
+
 export async function addUser(body: {
   user_id: number;
   username: string;

@@ -4,9 +4,10 @@ from sqlmodel import Session, select
 import logging
 from fastapi_backend.database.models import Users
 from fastapi_backend.database.db_writer import engine
-from fastapi_backend.utils.auth import Users, get_current_user, SECRET_KEY
+from fastapi_backend.utils.auth import Users, get_current_user, SECRET_KEY, hash_password
 from pydantic import BaseModel
 from fastapi_backend.core.competition_state import CompetitionStatus
+import bcrypt
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 logger = logging.getLogger(__name__)
@@ -21,6 +22,10 @@ class AddUserRequest(BaseModel):
     is_admin: bool
     is_blue_team: bool
     blue_team_num: Optional[int] = None
+
+class ChangePasswordRequest(BaseModel):
+    user_id: int
+    password: str
 
 
 def get_orchestrator():
@@ -134,11 +139,14 @@ async def add_user(user: AddUserRequest, current_user: Users = Depends(get_curre
             if existing_username:
                 raise HTTPException(status_code=400, detail="Username already exists")
 
+            # hash alert
+            hashed_password = hash_password(user.password)
+
             # Create new user
             new_user = Users(
                 user_id=user.user_id,
                 username=user.username,
-                password=user.password,
+                password=hashed_password,
                 is_admin=user.is_admin,
                 is_blue_team=user.is_blue_team,
                 blue_team_num=user.blue_team_num if user.is_blue_team else None
@@ -157,6 +165,29 @@ async def add_user(user: AddUserRequest, current_user: Users = Depends(get_curre
     except Exception as e:
         logger.error(f"Failed to add user: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/change_password")
+def change_password(user: ChangePasswordRequest, current_user: Users = Depends(get_current_user)):
+    """
+    Change the password for a user.
+    """
+    # Check if the current user is admin or the user themselves
+    if not current_user.is_admin and current_user.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    # Hash the new password
+    hashed_password = hash_password(user.password)
+
+    # Update the password in the database
+    with Session(engine) as session:
+        user = session.get(Users, user.user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user.password = hashed_password
+        session.commit()
+
+    return {"status": "success", "message": "Password changed successfully"}
 
 @router.post("/deploy_iocs")
 async def deploy_iocs(current_user: Users = Depends(get_current_user), orch=Depends(get_orchestrator)) -> Dict[str, Any]:

@@ -10,7 +10,8 @@ import {
   resetCompetitionData,
   getUsers,        // new API
   removeUser,      // new API
-  addUser          // new API
+  addUser,          // new API
+  changePassword,   // newer API
 } from "../api/api"; // adjust path if needed
 import AppNavbar from "../components/navbar";
 import ProtectedRoute from "../components/protectedroute";
@@ -160,6 +161,9 @@ const ManageUsers: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState<boolean>(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [newPassword, setNewPassword] = useState<string>("");
 
   const [newUser, setNewUser] = useState<Partial<User> & { password?: string }>({
     user_id: 0,
@@ -228,6 +232,26 @@ const ManageUsers: React.FC = () => {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!newPassword) {
+      alert("Please enter a new password");
+      return;
+    }
+    if (selectedUserId === null) {
+      alert("No user selected");
+      return;
+    }
+    try {
+      await changePassword({ user_id: selectedUserId, password: newPassword });
+      setShowChangePasswordModal(false);
+      fetchUsers(); // refresh users list
+      alert("Password changed successfully!");
+    } catch (err: any) {
+      alert("Change password failed: " + (err.message || err));
+    }
+  };
+  
+
   return (
     <div className="manage-users">
       <h2>Manage Users</h2>
@@ -265,6 +289,18 @@ const ManageUsers: React.FC = () => {
                     >
                       Delete
                     </Button>
+                    <Button
+                      variant="warning"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedUserId(u.user_id);
+                        setShowChangePasswordModal(true);
+                      }}
+                      className="ms-2"
+                    >
+                      Change Password
+                    </Button>
+
                   </td>
                 </tr>
               ))}
@@ -348,6 +384,31 @@ const ManageUsers: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      <Modal show={showChangePasswordModal} onHide={() => setShowChangePasswordModal(false)}>
+  <Modal.Header closeButton>
+    <Modal.Title>Change Password</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    <Form>
+      <Form.Group className="mb-2">
+        <Form.Label>New Password</Form.Label>
+        <Form.Control
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+        />
+      </Form.Group>
+    </Form>
+  </Modal.Body>
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setShowChangePasswordModal(false)}>
+      Cancel
+    </Button>
+    <Button variant="primary" onClick={handleChangePassword}>
+      Change Password
+    </Button>
+  </Modal.Footer>
+</Modal>
     </div>
   );
 };

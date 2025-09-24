@@ -4,11 +4,21 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
 from fastapi_backend.database.models import Users
 from fastapi_backend.database.db_writer import engine
+import bcrypt
 
 SECRET_KEY = "Sup3rS3cre3tRedTe3333am"
 ALGORITHM = "HS256"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    print(f"HERE I AM: {bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))}")
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+def hash_password(plain_password: str) -> str:
+    hashed = bcrypt.hashpw(plain_password.encode('utf-8'), bcrypt.gensalt())
+    return hashed.decode('utf-8')
 
 def get_user_from_token(token: str) -> Users:
     try:
