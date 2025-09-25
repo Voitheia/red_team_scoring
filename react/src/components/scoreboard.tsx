@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from "react";
+import {
+  API_BASE,   // newer API
+} from "../api/api"; // adjust path if needed
 
 type ScoreboardData = {
   time: string[];
@@ -14,7 +17,7 @@ const Scoreboard: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:3000/scoreboard");
+      const response = await fetch(API_BASE + "/scoreboard");
       if (!response.ok) {
         throw new Error(`Failed to fetch scoreboard: ${response.statusText}`);
       }

@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedToken = localStorage.getItem("authToken");
     if (storedToken) {
       setToken(storedToken);
-      fetch("http://localhost:3000/me", {
+      fetch("https://localhost:3000/me", {
         headers: { Authorization: `Bearer ${storedToken}` },
       })
         .then((res) => (res.ok ? res.json() : Promise.reject()))

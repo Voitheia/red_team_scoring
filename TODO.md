@@ -10,6 +10,5 @@
 - scoreboard api
 - details api
 - check result processing
-- password hashing if we care
 - script encryption??
 - https

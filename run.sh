@@ -4,5 +4,5 @@ echo "Current set cleanup ports are 5173,3000. This script will KILL processes o
 fuser -k 3000/tcp
 fuser -k 5173/tcp
 # start new ones
-uvicorn fastapi_backend.main:app --reload --port 3000 &
+uvicorn fastapi_backend.main:app --reload --port 3000 --ssl-keyfile=certs/key.pem --ssl-certfile=certs/cert.pem &
 cd react; npm run dev &
