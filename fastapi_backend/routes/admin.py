@@ -117,7 +117,7 @@ async def remove_user(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
+# TODO: It would be ideal to not have to specify the user ID, and just increment the ID
 @router.post("/add_user")
 async def add_user(user: AddUserRequest, current_user: Users = Depends(get_current_user)
 ) -> Dict[str, Any]:
@@ -128,8 +128,8 @@ async def add_user(user: AddUserRequest, current_user: Users = Depends(get_curre
 
     try:
         with Session(engine) as session:
-            # Check for existing ID
-            if session.get(Users, user.user_id):
+            # Check for existing ID if it's provided, otherwise just insert without it
+            if user.user_id is not -1 and session.get(Users, user.user_id):
                 raise HTTPException(status_code=400, detail="User ID already exists")
 
             # Check for existing username
@@ -143,14 +143,23 @@ async def add_user(user: AddUserRequest, current_user: Users = Depends(get_curre
             hashed_password = hash_password(user.password)
 
             # Create new user
-            new_user = Users(
-                user_id=user.user_id,
-                username=user.username,
-                password=hashed_password,
-                is_admin=user.is_admin,
-                is_blue_team=user.is_blue_team,
-                blue_team_num=user.blue_team_num if user.is_blue_team else None
-            )
+            if user.user_id:
+                new_user = Users(
+                    user_id=user.user_id,
+                    username=user.username,
+                    password=hashed_password,
+                    is_admin=user.is_admin,
+                    is_blue_team=user.is_blue_team,
+                    blue_team_num=user.blue_team_num if user.is_blue_team else None
+                )
+            else:
+                new_user = Users(
+                    username=user.username,
+                    password=hashed_password,
+                    is_admin=user.is_admin,
+                    is_blue_team=user.is_blue_team,
+                    blue_team_num=user.blue_team_num if user.is_blue_team else None
+                )
 
             session.add(new_user)
             session.commit()

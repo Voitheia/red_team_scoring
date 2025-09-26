@@ -2,7 +2,8 @@ from sqlmodel import create_engine, SQLModel, Session
 from sqlalchemy import text
 import logging
 
-from fastapi_backend.database.models import BlueTeams
+from fastapi_backend.database.models import *
+from fastapi_backend.utils.auth import *
 
 class DatabaseInitializer:
     """Initialize database schema and views"""
@@ -25,6 +26,9 @@ class DatabaseInitializer:
         # Initialize blue teams
         self.logger.info("Initializing blue teams...")
         self.initialize_teams()
+
+        self.logger.info("Initializing webpage accounts...")
+        self.initialize_accounts()
         
         self.logger.info("Database initialization complete")
     
@@ -136,3 +140,56 @@ class DatabaseInitializer:
                     )
                     session.add(team)
             session.commit()
+
+    def initialize_accounts(self):
+        """Initialize website accounts"""
+
+        with Session(self.engine) as session:
+            # TODO: Are these passwords too insecure? Do we care?
+            # add blue team accounts, no 0th account 
+            for team_num in range(1,17):
+                existing = session.query(Users).filter_by(blue_team_num=team_num).first()
+                if not existing:
+                    add_user(Users(
+                    username=f"blueteam{team_num}",
+                    password=f"CDE25Blueteam{team_num}",
+                    is_admin=False,
+                    is_blue_team=True,
+                    blue_team_num=team_num
+                ))
+            # add red team accounts
+            existing = session.query(Users).filter_by(username="redteamlead").first()
+            if not existing:
+                add_user(Users(
+                    username="redteamlead",
+                    password="Sqordfish0!",
+                    is_admin=True,
+                    is_blue_team=False,
+                ))
+            existing = session.query(Users).filter_by(username="redteamer").first()
+            if not existing:
+                add_user(Users(
+                    username="redteamer",
+                    password="Sqordfish0!",
+                    is_admin=False,
+                    is_blue_team=False,
+                ))
+            # add black team account
+            existing = session.query(Users).filter_by(username="blackteam").first()
+            if not existing:
+                add_user(Users(
+                    username="blackteam",
+                    password="BlackTeamIsTheB3st!CDE25",
+                    is_admin=False,
+                    is_blue_team=False,
+                ))
+            
+            # add white team account
+            existing = session.query(Users).filter_by(username="whiteteam").first()
+            if not existing:
+                add_user(Users(
+                    username="whiteteam",
+                    password="WhiteTeamIsNumb3r0n3!CDE25",
+                    is_admin=False,
+                    is_blue_team=False,
+                ))

@@ -262,6 +262,7 @@ const ManageUsers: React.FC = () => {
           <Button onClick={() => setShowAddModal(true)} variant="primary" className="mb-3">
             Add User
           </Button>
+        <div style={{ maxHeight: "250px", overflowY: "auto", overflowX: "auto" }}>
           <Table striped variant="dark" bordered hover size="sm">
             <thead>
               <tr>
@@ -280,7 +281,7 @@ const ManageUsers: React.FC = () => {
                   <td>{u.username}</td>
                   <td>{u.is_admin ? "Yes" : "No"}</td>
                   <td>{u.is_blue_team ? "Yes" : "No"}</td>
-                  <td>{u.is_blue_team && u.blueteam_num != null ? u.blueteam_num : "-"}</td>
+                  <td>{u.is_blue_team && u.blue_team_num != null ? u.blue_team_num : "-"}</td>
                   <td>
                     <Button
                       variant="danger"
@@ -306,6 +307,7 @@ const ManageUsers: React.FC = () => {
               ))}
             </tbody>
           </Table>
+          </div>
         </>
       )}
 

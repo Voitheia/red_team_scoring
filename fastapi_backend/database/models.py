@@ -8,7 +8,7 @@ class Users(SQLModel, table=True):
     username: str
     password: str
     is_blue_team: bool = Field(default=True)
-    blue_team_num: int = Field(foreign_key="blue_teams.team_num")
+    blue_team_num: int = Field(default=0, foreign_key="blue_teams.team_num")
     is_admin: bool = Field(default=False)
 
 

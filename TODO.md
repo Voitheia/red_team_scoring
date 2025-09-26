@@ -5,10 +5,7 @@
 
 ### Backend
 - callback plugin
-- database init
-  - need to add blue teams, white team, admin red team, regular red team, black team
 - scoreboard api
 - details api
 - check result processing
 - script encryption??
-- https
