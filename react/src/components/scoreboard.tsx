@@ -3,9 +3,15 @@ import {
   API_BASE,   // newer API
 } from "../api/api"; // adjust path if needed
 
+type TeamEntry = {
+  team_num: number;
+  total_score: number;
+  last_check_score: number;
+  last_check_time: string | null;
+};
+
 type ScoreboardData = {
-  time: string[];
-  [team: string]: any[]; // dynamic keys like team0, team15 etc.
+  teams: TeamEntry[];
 };
 
 const Scoreboard: React.FC = () => {
@@ -32,9 +38,7 @@ const Scoreboard: React.FC = () => {
 
   useEffect(() => {
     fetchScoreboard();
-
     const interval = setInterval(fetchScoreboard, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -42,49 +46,30 @@ const Scoreboard: React.FC = () => {
   if (error) return <p className="text-danger">Error: {error}</p>;
   if (!data) return null;
 
-  // Extract team keys (exclude 'time')
-  const teamKeys = Object.keys(data).filter((key) => key !== "time");
-
-  // Get last index and previous index for last check points
-  const lastIndex = data.time.length - 1;
-  const prevIndex = lastIndex - 1 >= 0 ? lastIndex - 1 : 0;
-
   return (
-    <div
-      style={{
-        margin: "40px auto",
-        padding: "20px",
-        maxWidth: "90%",
-        width: "100%",
-      }}
-    >
+    <div style={{ margin: "40px auto", padding: "20px", maxWidth: "90%", width: "100%" }}>
       <section className="scoreboard-container">
-      <h2 className="scoreboard-header">Scoreboard</h2>
-      <p>Last update: {data.time[lastIndex]}</p>
-      <table className="table table-striped table-dark">
-        <thead>
-          <tr>
-            <th>Team</th>
-            <th>Total Score</th>
-            <th>Points Last Check</th>
-          </tr>
-        </thead>
-        <tbody>
-          {teamKeys.map((teamKey) => {
-            const totalScore = data[teamKey][lastIndex];
-            const prevScore = data[teamKey][prevIndex];
-            const pointsLastCheck = totalScore - prevScore;
-
-            return (
-              <tr key={teamKey}>
-                <td>{teamKey}</td>
-                <td>{totalScore}</td>
-                <td>{pointsLastCheck}</td>
+        <h2 className="scoreboard-header">Scoreboard</h2>
+        <table className="table table-striped table-dark">
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>Total Score</th>
+              <th>Points Last Check</th>
+              <th>Last Check Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.teams.map((team) => (
+              <tr key={team.team_num}>
+                <td>{`Team ${team.team_num}`}</td>
+                <td>{team.total_score}</td>
+                <td>{team.last_check_score}</td>
+                <td>{team.last_check_time ? new Date(team.last_check_time).toLocaleTimeString() : "-"}</td>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
       </section>
     </div>
   );

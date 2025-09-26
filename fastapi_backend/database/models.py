@@ -42,3 +42,28 @@ class IOCCheckResult(SQLModel, table=True):
     error: Optional[str] = Field(default=None)
 
     check: CheckInstance = Relationship(back_populates="results")
+
+
+class BlueTeamsScoreboard(SQLModel, table=True):
+    __tablename__ = "blue_teams_scoreboard"
+    __table_args__ = {"extend_existing": True}
+
+    # Columns exposed by your view
+    team_num: int = Field(primary_key=True)  # pick a PK (team_num works fine here)
+    last_check_id: Optional[int] = None
+    total_score: int
+    last_check_score: int
+    last_check_time: Optional[datetime] = None
+
+class TeamLatestIocDetails(SQLModel, table=True):
+    __tablename__ = "team_latest_ioc_details"
+    __table_args__ = {"extend_existing": True}
+
+    team_num: int = Field(primary_key=True)
+    box_ip: str = Field(primary_key=True)
+    ioc_name: str = Field(primary_key=True)
+
+    difficulty: int
+    status: int
+    error: Optional[str]
+    points: int

@@ -125,6 +125,7 @@ class DatabaseInitializer:
                     self.logger.error(f"Failed to create view {view_name}: {e}")
                     session.rollback()
                     raise
+
     
     def initialize_teams(self):
         """Initialize blue team records"""

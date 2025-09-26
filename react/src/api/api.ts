@@ -51,7 +51,40 @@ export interface GetUsersResponse {
   users: UserSummary[];
 }
 
+export type IocDetail = {
+  team_num: number;
+  box_ip: string;
+  ioc_name: string;
+  difficulty: number;
+  status: number;
+  error: string | null;
+  points: number;
+};
+
+export type GetDetailsResponse = {
+  details: IocDetail[];
+};
+
+
 export const API_BASE = "https://localhost:3000";
+
+export async function getDetails(): Promise<GetDetailsResponse> {
+  const storedToken = localStorage.getItem("authToken");
+  const response = await fetch(`${API_BASE}/details`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${storedToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`getDetails failed: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 
 
 export async function getUsers(): Promise<GetUsersResponse> {
